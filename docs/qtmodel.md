@@ -1,6 +1,16 @@
 # Qt Model/View 结构
 
-## 相互作用
+- [Model/View Tutorial - Qt Documentation](https://doc.qt.io/qt-6/modelview.html)
+- [Model/View Programming - Qt Documentation](https://doc.qt.io/qt-6/model-view-programming.html)
+
+## 原理
+
+Widget 拿取数据有两种方法：
+
+- 在内部使用容器保存数据
+- 不在内部保存数据，而是从标准化的外部接口获取数据
+
+后者能够避免数据冗余，在大型程序中更为常见。这种设计模式称为 Model/View。
 
 Qt 设计基于下图所示的 Model/View 结构：
 
@@ -12,17 +22,21 @@ Qt 设计基于下图所示的 Model/View 结构：
 - 用户在界面上操作数据时，View 发射信号表示 Command。
 - 数据被编辑时，Delegate 发射信号告知 Model 和 View 编辑器的状态。
 
-如果要适配课上所说的 MVVM 模型，只需把 Qt 中的 View 视为 VM 即可。
+如果要适配课上所说的 MVVM 模型，只需在 View 和 Model 之间再创建一层 Proxy Model 即可。
 
 ## Model 类
 
-Qt 提供以下 `QAbstractItemModel` 类：
+Qt 提供以下 Model 类：
 
 ![image-20240709214928642](qtmodel.assets/image-20240709214928642.png)
+
+### item
 
 Model 中数据的基本单元是 item，它具有 row、column 和 parent item 三个参数。通过这三个参数，可以构造 List、Table、Tree 等组织形式的 Model。
 
 ![image-20240709220640175](qtmodel.assets/image-20240709220640175.png)
+
+### index
 
 `QAbstractItemModel` 的子类都以表格的层次结构表示数据，View 通过这种规则来存取 Model 中的数据。`QModelIndex` 表示 Model 索引，提供一个临时指针，用来通过 Model 提取或修改数据，如下所示：
 
@@ -30,6 +44,8 @@ Model 中数据的基本单元是 item，它具有 row、column 和 parent item 
 // QModelIndex() 表示 root item
 QModelIndex index = model->index(0, 0, QModelIndex());
 ```
+
+### role
 
 一个 item 具有多种 role，用于告知视图和代理如何显示数据。比如：
 
@@ -40,9 +56,9 @@ QModelIndex index = model->index(0, 0, QModelIndex());
 role 是 `Qt::ItemDataRole` 枚举类型。存取 item 的数据时都需要指定 role：
 
 ```cpp
-// data 函数的定义
+// data 函数的签名
 QVariant QStandardItem::date(int role = Qt::UserRole + 1) const
-// setData 函数的定义
+// setData 函数的签名
 void QStandardItem::setData(const QVariant &value, int role = Qt::UserRole + 1)
 ```
 
@@ -52,7 +68,7 @@ Qt 提供以下 `QAbstractItemView` 类：
 
 ![image-20240709215103780](qtmodel.assets/image-20240709215103780.png)
 
-调用 View 的 `setModel()` 函数可以将其关联到一个 Model。在 View 上的修改自动保存到关联的 Model。 
+调用 View 的 `setModel()` 函数可以将其关联到一个 Model。在 View 上的修改自动保存到关联的 Model。
 
 ## Delegate 类
 
@@ -62,3 +78,14 @@ Qt 提供 `QAbstractItemDelegate` 作为所有代理类的基类，其子类 `QS
 
 ![image-20240709222315499](qtmodel.assets/image-20240709222315499.png)
 
+## ProxyModel 类
+
+- `QABstractProxyModel`
+    - `QIdentityProxyModel`：不做任何转换
+    - `QSortFilterProxyModel`：排序和过滤
+
+## QDataWidgetMapper
+
+Qt 提供的三种 View 均继承自 `QAbstractItemView`，而 `QAbstractItemView` 又继承自 `QAbstractScrollArea`。很多时候我们设计的 Widget 并不能设计为 `QAbstractItemView` 的子类，这时我们可以使用 `QDataWidgetMapper`。
+
+`QDataWidgetMapper` 是一个用于将 Model 中的数据映射到 Widget 的类。它可以将 Model 中的数据映射到 Widget 的属性，也可以将 Widget 的属性映射到 Model 中。
