@@ -1,24 +1,22 @@
 #ifndef LOGIN_MODEL_H
 #define LOGIN_MODEL_H
 
-#include <QString>
-#include <QVector>
 #include <QByteArray>
-#include <QtSql>
 #include <QDir>
+#include <QSqlTableModel>
+#include <QString>
+#include <QtSql>
 
-#include "login/user_info.h"
+namespace MINIOICQ {
 
-class LoginModel {
-public:
-  LoginModel();
-  ~LoginModel();
+class LoginModel: public QSqlTableModel {
+    public:
+    LoginModel (QObject* parent = nullptr, QSqlDatabase db = QSqlDatabase ());
+    ~LoginModel ();
 
-  QVector<UserInfo *> *getUsers();
-  void addUser(UserInfo *user);
-
-private:
-  QSqlDatabase db;
+    private:
 };
+
+} // namespace MINIOICQ
 
 #endif // LOGIN_MODEL_H

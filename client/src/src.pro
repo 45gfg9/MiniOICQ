@@ -1,12 +1,18 @@
 TEMPLATE = app
-QT += core gui widgets
+QT += core gui widgets sql
 CONFIG += c++11
 HEADERS = \
-    login/login_window.h
+    login/login_view.h \
+    login/login_proxymodel.h \
+    login/login_model.h \
+
 SOURCES = \
     main.cpp \
-    login/login_window.cpp
+    login/login_view.cpp \
+    login/login_proxymodel.cpp \
+    login/login_model.cpp \
+
 LIBS += ../third_party/qt-material-widgets/components/libcomponents.a
 INCLUDEPATH += ../third_party/qt-material-widgets/components/
-TARGET = client
+TARGET = client.exe
 PRE_TARGETDEPS += ../third_party/qt-material-widgets/components/libcomponents.a
