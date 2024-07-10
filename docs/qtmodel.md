@@ -80,8 +80,8 @@ Qt 提供 `QAbstractItemDelegate` 作为所有代理类的基类，其子类 `QS
 
 ## ProxyModel 类
 
-- `QABstractProxyModel`
-    - `QIdentityProxyModel`：不做任何转换
+- `QAbstractProxyModel`：继承自 `QAbstractItemModel`
+    - `QIdentityProxyModel`：转换内容而不改变结构
     - `QSortFilterProxyModel`：排序和过滤
 
 ## QDataWidgetMapper

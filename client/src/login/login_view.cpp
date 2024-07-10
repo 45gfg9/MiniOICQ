@@ -46,22 +46,32 @@ void LoginView::initUI () {
 
 void LoginView::initConnect () {
     // userid select or edit
-    connect (_userId, &QtMaterialAutoComplete::textChanged, [this] (const QString& text) {
-        qDebug () << "[LoginView._userId] textChanged: " << text;
-        _mapper->model ()->setData (
-        _mapper->model ()->index (_mapper->currentIndex (), _userIdColumn), text);
-    });
+    // connect (_userId, &QtMaterialAutoComplete::textChanged, [this] (const QString& text) {
+    //     qDebug () << "[LoginView._userId] textChanged: " << text;
+    //     _mapper->model ()->setData (
+    //     _mapper->model ()->index (_mapper->currentIndex (), _model->userIdColumn()), text);
+    // });
     connect (_userId, &QtMaterialAutoComplete::itemSelected, [this] (const QString& text) {
         qDebug () << "[LoginView._userId] itemSelected: " << text;
-        _mapper->model ()->setData (
-        _mapper->model ()->index (_mapper->currentIndex (), _userIdColumn), text);
+        auto match = _mapper->model ()->match (
+        _mapper->model ()->index (0, _model->userIdColumn ()), Qt::DisplayRole,
+        text, 1, Qt::MatchExactly);
+        if (!match.empty ()) {
+            _mapper->setCurrentIndex (match.first ().row ());
+            QImage avatar;
+            avatar.loadFromData (_mapper->model ()
+                                 ->data (_mapper->model ()->index (
+                                 _mapper->currentIndex (), _model->avatarColumn ()))
+                                 .toByteArray ());
+            _avatar->setImage (avatar);
+        }
     });
 
     // password edit
     connect (_password, &QtMaterialTextField::textChanged, [this] (const QString& text) {
         qDebug () << "[LoginView._password] textChanged: " << text;
         _mapper->model ()->setData (
-        _mapper->model ()->index (_mapper->currentIndex (), _passwordColumn), text);
+        _mapper->model ()->index (_mapper->currentIndex (), _model->passwordColumn ()), text);
     });
 
     // login click
@@ -73,23 +83,31 @@ void LoginView::initConnect () {
     [this] { qDebug () << "Register"; });
 }
 
-void LoginView::setModel (QAbstractItemModel* model) {
+void LoginView::setModel (LoginProxyModel* model) {
     _model  = model;
     _mapper = new QDataWidgetMapper (this);
     _mapper->setModel (_model);
-    // find user id, password, avatar column
-    for (int i = 0; i < _model->columnCount (); i++) {
-        if (_model->headerData (i, Qt::Horizontal).toString () == "userId") {
-            _userIdColumn = i;
-        } else if (_model->headerData (i, Qt::Horizontal).toString () == "password") {
-            _passwordColumn = i;
-        } else if (_model->headerData (i, Qt::Horizontal).toString () == "avatar") {
-            _avatarColumn = i;
-        }
-    }
-    _mapper->addMapping (_userId, _userIdColumn);
-    _mapper->addMapping (_password, _passwordColumn);
-    _mapper->addMapping (_avatar, _avatarColumn);
+    _mapper->addMapping (_userId, _model->userIdColumn ());
+    _mapper->addMapping (_password, _model->passwordColumn ());
+    _mapper->addMapping (_avatar, _model->avatarColumn ());
     _mapper->toFirst ();
+
+    on_model_dataChanged (_model->index (0, 0),
+    _model->index (_model->rowCount () - 1, 0), QVector<int>{ Qt::DisplayRole });
 }
+
+void LoginView::on_model_dataChanged (const QModelIndex& topLeft,
+const QModelIndex& /* bottomRight */,
+const QVector<int>& roles) {
+    qDebug () << "LoginView::on_model_dataChanged";
+    if (roles.contains (Qt::DisplayRole)) {
+        _mapper->setCurrentIndex (topLeft.row ());
+        QStringList userIds;
+        for (int i = 0; i < _model->rowCount (); i++) {
+            userIds << _model->data (_model->index (i, _model->userIdColumn ())).toString ();
+        }
+        _userId->setDataSource (userIds);
+    }
+}
+
 } // namespace MINIOICQ

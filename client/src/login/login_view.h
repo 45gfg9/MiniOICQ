@@ -8,8 +8,8 @@
  │   ─────────────────────  │
  │                          │
  │   ┌──────┐               │
- │   │      │  Username     │
- │   │Avatar│               │
+ │   │      │  UserName     │
+ │   │Avatar│  UserId       │
  │   │      │  Password     │
  │   └──────┘               │
  │                          │
@@ -36,6 +36,7 @@
 #include <qtmaterialavatar.h>
 #include <qtmaterialraisedbutton.h>
 #include <qtmaterialtextfield.h>
+#include "login_proxymodel.h"
 
 namespace MINIOICQ {
 class LoginView : public QDialog {
@@ -43,21 +44,23 @@ class LoginView : public QDialog {
     public:
     LoginView (QWidget* parent = nullptr);
     ~LoginView ();
-    void setModel (QAbstractItemModel* model);
+    void setModel (LoginProxyModel* model);
 
     private:
     void initUI ();
     void initConnect ();
 
+    public slots:
+    void on_model_dataChanged (const QModelIndex& topLeft, const QModelIndex& bottomRight,
+                               const QVector<int>& roles);
+
     private:
     // data
     QDataWidgetMapper* _mapper;
-    QAbstractItemModel* _model;
-    int _userIdColumn   = -1;
-    int _passwordColumn = -1;
-    int _avatarColumn   = -1;
+    LoginProxyModel* _model;
     // components
     QLabel* _title;
+    QLabel* _userName;
     QtMaterialAvatar* _avatar;
     QtMaterialAutoComplete* _userId;
     QtMaterialTextField* _password;

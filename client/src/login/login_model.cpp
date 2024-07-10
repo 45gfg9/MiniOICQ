@@ -3,7 +3,8 @@
 namespace MINIOICQ {
 
 LoginModel::LoginModel (QObject* parent, QSqlDatabase db) : QSqlTableModel (parent, db) {
-    setTable ("users");
+    setTable ("localUser");
+    this->select ();
 }
 
 LoginModel::~LoginModel () {

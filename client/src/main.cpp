@@ -8,24 +8,40 @@
 
 int main (int argc, char* argv[]) {
     QApplication a (argc, argv);
+    a.setQuitOnLastWindowClosed (true);
     Q_INIT_RESOURCE (resources);
 
     // Login
     QSqlDatabase localUsersDB;
     localUsersDB = QSqlDatabase::addDatabase ("QSQLITE", "users_connection");
-    localUsersDB.setDatabaseName (QDir::currentPath () + "/MINIOICQ/databases/users._db");
+    localUsersDB.setDatabaseName (QDir::currentPath () + "/MINIOICQ/databases/localUser.db");
     if (!localUsersDB.open ()) {
-        qDebug () << "Cannot open database: " << localUsersDB.lastError ().text () << "\n";
+        qDebug () << "Cannot open database: " << localUsersDB.databaseName () << "\n";
         // create the database
         throw localUsersDB.lastError ();
     } else {
         qDebug () << "Database: connection ok";
     }
-    // MINIOICQ::LoginModel loginModel(nullptr, localUsersDB);
-    QSqlTableModel loginModel (nullptr, localUsersDB);
+    MINIOICQ::LoginModel loginModel (nullptr, localUsersDB);
+
+    // Debug: print the table
+    qDebug () << "Table: " << loginModel.tableName ();
+    qDebug () << "Columns: " << loginModel.columnCount ();
+    for (int i = 0; i < loginModel.columnCount (); i++) {
+        qDebug () << "Column " << i << ": "
+                  << loginModel.headerData (i, Qt::Horizontal, Qt::DisplayRole);
+    }
+    qDebug () << "Rows: " << loginModel.rowCount ();
+    for (int i = 0; i < loginModel.rowCount (); i++) {
+        for (int j = 0; j < loginModel.columnCount (); j++) {
+            qDebug () << "Row " << i << " Column " << j << ": "
+                      << loginModel.data (loginModel.index (i, j), Qt::DisplayRole);
+        }
+    }
+
+
     MINIOICQ::LoginProxyModel loginProxyModel;
     loginProxyModel.setSourceModel (&loginModel);
-    // loginProxyModel->setFilterKeyColumn(1);
     MINIOICQ::LoginView loginView;
     loginView.setModel (&loginProxyModel);
     if (loginView.exec () == QDialog::Accepted) {
@@ -34,5 +50,5 @@ int main (int argc, char* argv[]) {
         qDebug () << "Login failed";
     }
 
-    return a.exec ();
+    return 0;
 }

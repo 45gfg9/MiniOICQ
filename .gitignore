@@ -1,7 +1,7 @@
 .vscode
 ref
 build
-.exe
+*.exe
 
 # <<< Qt.gitignore
 # C++ objects and libs
