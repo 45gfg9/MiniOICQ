@@ -84,22 +84,84 @@ Qt 提供 `QAbstractItemDelegate` 作为所有代理类的基类，其子类 `QS
     - `QIdentityProxyModel`：转换内容而不改变结构
     - `QSortFilterProxyModel`：排序和过滤
 
-## QDataWidgetMapper
+## QDataWidgetMapper 类
 
 Qt 提供的三种 View 均继承自 `QAbstractItemView`，而 `QAbstractItemView` 又继承自 `QAbstractScrollArea`。很多时候我们设计的 Widget 并不能设计为 `QAbstractItemView` 的子类，这时我们可以使用 `QDataWidgetMapper`。
 
 `QDataWidgetMapper` 是一个用于将 Model 中的数据映射到 Widget 的类。它可以将 Model 中的数据映射到 Widget 的属性，也可以将 Widget 的属性映射到 Model 中。
 
-## 接口
+## 详解
 
-### Model
+Qt 文档很多函数细节没有讲清楚，还是得看源码。
 
-- 接口：`setData()`：返回 Data 是否成功设置。
-    - 信号：`dataChanged()`，成功设置后发射。
-- 槽：`submit()` 调用后会将修改存储到真实数据源。
-    - `QSqlTableModel` 实现了
-    - `QAbstractProxyModel` 同样具有
+### QStyledItemDelegate
 
-### ProxyModel 独有
+- `setModelData`：从 editor 的 userProperty 中获取数据，然后调用 Model 的 `setData` 函数写入 `EditRole` 数据
 
-- 信号：`sourceModelChanged()`，源 Model 发生变化时发射。
+    ```cpp
+    void QStyledItemDelegate::setModelData(QWidget *editor,
+                                    QAbstractItemModel *model,
+                                    const QModelIndex &index) const
+    {
+        Q_D(const QStyledItemDelegate);
+        Q_ASSERT(model);
+        Q_ASSERT(editor);
+        QByteArray n = editor->metaObject()->userProperty().name();
+        if (n.isEmpty())
+            n = d->editorFactory()->valuePropertyName(
+                model->data(index, Qt::EditRole).userType());
+        if (!n.isEmpty())
+            model->setData(index, editor->property(n), Qt::EditRole);
+    }
+    ```
+
+- `setEditorData`：直接从 `index` 获取 `EditRole` 数据，然后写入 editor 的 userProperty
+
+    ```cpp
+    void QStyledItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+    {
+        QVariant v = index.data(Qt::EditRole);
+        QByteArray n = editor->metaObject()->userProperty().name();
+
+        if (!n.isEmpty()) {
+            if (!v.isValid())
+                v = QVariant(editor->property(n).metaType());
+            editor->setProperty(n, v);
+        }
+    }
+    ```
+
+在实现自己的 Delegate 时，主要就是覆盖上面两个函数，实现自己的数据读写逻辑。
+
+### QDataWidgetMapper
+
+- `addMapping`：本质是将 delegate 的事件过滤器安装到 widget 上
+
+    ```cpp
+    void QDataWidgetMapper::addMapping(QWidget *widget, int section, const QByteArray &propertyName)
+    {
+        Q_D(QDataWidgetMapper);
+
+        removeMapping(widget);
+        d->widgetMap.push_back({widget, section, d->indexAt(section), propertyName});
+        widget->installEventFilter(d->delegate);
+    }
+    ```
+
+    默认情况下安装的是 `QStyledItemDelegate`，它支持 Tab、Backtab、Enter、Return、Esc 几类事件。
+
+- `submit`：调用 Model 的 `submit` 函数
+
+    ```cpp
+    bool QDataWidgetMapper::submit()
+    {
+        Q_D(QDataWidgetMapper);
+
+        for (auto &e : d->widgetMap) {
+            if (!d->commit(e))
+                return false;
+        }
+
+        return d->model->submit();
+    }
+    ```

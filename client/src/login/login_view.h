@@ -39,44 +39,58 @@
 #include <qtmaterialraisedbutton.h>
 #include <qtmaterialtextfield.h>
 
-namespace MINIOICQ {
-class LoginDelegate : public QStyledItemDelegate {
+namespace MINIOICQ
+{
+class LoginDelegate : public QStyledItemDelegate
+{
     Q_OBJECT
-    public:
+public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
-    private:
-    void paint (QPainter* painter,
-    const QStyleOptionViewItem& option,
-    const QModelIndex& index) const override;
-    QSize sizeHint (const QStyleOptionViewItem& option, const QModelIndex& index) const override;
-    void setEditorData (QWidget* editor, const QModelIndex& index) const override;
-    void setModelData (QWidget* editor,
-    QAbstractItemModel* model,
-    const QModelIndex& index) const override;
+private:
+    void setEditorData(QWidget* editor,
+                       const QModelIndex& index) const override;
+    void setModelData(QWidget* editor, QAbstractItemModel* model,
+                      const QModelIndex& index) const override;
 };
 
-class LoginView : public QDialog {
+class LoginView : public QDialog
+{
     Q_OBJECT
-    public:
-    LoginView (QWidget* parent = nullptr);
-    ~LoginView ();
-    void setModel (LoginProxyModel* model);
+public:
+    LoginView(QWidget* parent = nullptr);
+    ~LoginView();
+    void setModel(LoginProxyModel* model);
 
-    private:
-    void initUI ();
-    void initConnect ();
+private:
+    void initUI();
+    void initConnect();
 
-    public slots:
-    void on_model_dataChanged (const QModelIndex& topLeft,
-    const QModelIndex& bottomRight,
-    const QVector<int>& roles);
+public slots:
 
-    private:
+    void loginSuccess();
+    void loginFailed();
+    void registerSuccess();
+    void registerFailed();
+
+private slots:
+
+    void on_login_clicked();
+    void on_register_clicked();
+    void on_userId_itemSelected(QString userId);
+
+Q_SIGNALS:
+
+    void login(QString userId, QString password);
+    void reg(QString userId, QString userName, QString password,
+                         QImage avatar);
+
+private:
     // data
     QDataWidgetMapper* _mapper;
     LoginProxyModel* _model;
     QStringListModel* _userIdModel;
+
     // components
     QtMaterialTextField* _userName;
     QtMaterialAvatar* _avatar;
@@ -84,6 +98,9 @@ class LoginView : public QDialog {
     QtMaterialTextField* _password;
     QtMaterialRaisedButton* _login;
     QtMaterialRaisedButton* _register;
+
+    //misc
+    void keyPressEvent(QKeyEvent* event) override;
 };
 } // namespace MINIOICQ
 

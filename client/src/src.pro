@@ -1,6 +1,6 @@
 TEMPLATE = app
 QT += core gui widgets sql
-CONFIG += c++11
+CONFIG += c++11 debug
 HEADERS = \
     login/login_view.h \
     login/login_proxymodel.h \

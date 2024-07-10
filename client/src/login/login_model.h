@@ -7,14 +7,18 @@
 #include <QString>
 #include <QtSql>
 
-namespace MINIOICQ {
+namespace MINIOICQ
+{
 
-class LoginModel: public QSqlTableModel {
-    public:
-    LoginModel (QObject* parent = nullptr, QSqlDatabase db = QSqlDatabase ());
-    ~LoginModel ();
+class LoginModel : public QSqlTableModel
+{
+    Q_OBJECT
 
-    private:
+public:
+    LoginModel(QObject* parent = nullptr, QSqlDatabase db = QSqlDatabase());
+    ~LoginModel();
+
+private:
 };
 
 } // namespace MINIOICQ
