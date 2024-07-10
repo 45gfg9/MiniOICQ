@@ -33,7 +33,7 @@ int main (int argc, char* argv[]) {
     }
     qDebug () << "Rows: " << loginModel.rowCount ();
     for (int i = 0; i < loginModel.rowCount (); i++) {
-        for (int j = 0; j < loginModel.columnCount (); j++) {
+        for (int j = 0; j < loginModel.columnCount () - 1; j++) {
             qDebug () << "Row " << i << " Column " << j << ": "
                       << loginModel.data (loginModel.index (i, j), Qt::DisplayRole);
         }
@@ -42,6 +42,23 @@ int main (int argc, char* argv[]) {
 
     MINIOICQ::LoginProxyModel loginProxyModel;
     loginProxyModel.setSourceModel (&loginModel);
+
+    // Debug: print the table
+    qDebug () << "LoginProxyModel";
+    qDebug () << "Columns: " << loginProxyModel.columnCount ();
+    for (int i = 0; i < loginProxyModel.columnCount (); i++) {
+        qDebug () << "Column " << i << ": "
+                  << loginProxyModel.headerData (i, Qt::Horizontal, Qt::DisplayRole);
+    }
+    qDebug () << "Rows: " << loginProxyModel.rowCount ();
+    for (int i = 0; i < loginProxyModel.rowCount (); i++) {
+        for (int j = 0; j < loginProxyModel.columnCount () - 1; j++) {
+            qDebug () << "Row " << i << " Column " << j << ": "
+                      << loginProxyModel.data (loginProxyModel.index (i, j), Qt::DisplayRole);
+        }
+    }
+
+
     MINIOICQ::LoginView loginView;
     loginView.setModel (&loginProxyModel);
     if (loginView.exec () == QDialog::Accepted) {

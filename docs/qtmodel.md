@@ -89,3 +89,17 @@ Qt 提供 `QAbstractItemDelegate` 作为所有代理类的基类，其子类 `QS
 Qt 提供的三种 View 均继承自 `QAbstractItemView`，而 `QAbstractItemView` 又继承自 `QAbstractScrollArea`。很多时候我们设计的 Widget 并不能设计为 `QAbstractItemView` 的子类，这时我们可以使用 `QDataWidgetMapper`。
 
 `QDataWidgetMapper` 是一个用于将 Model 中的数据映射到 Widget 的类。它可以将 Model 中的数据映射到 Widget 的属性，也可以将 Widget 的属性映射到 Model 中。
+
+## 接口
+
+### Model
+
+- 接口：`setData()`：返回 Data 是否成功设置。
+    - 信号：`dataChanged()`，成功设置后发射。
+- 槽：`submit()` 调用后会将修改存储到真实数据源。
+    - `QSqlTableModel` 实现了
+    - `QAbstractProxyModel` 同样具有
+
+### ProxyModel 独有
+
+- 信号：`sourceModelChanged()`，源 Model 发生变化时发射。

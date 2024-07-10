@@ -28,17 +28,34 @@
         - QtMaterialRaisedButton
 */
 
+#include "login_proxymodel.h"
 #include <QAbstractItemModel>
 #include <QDataWidgetMapper>
 #include <QDialog>
 #include <QLabel>
+#include <QStyledItemDelegate>
 #include <qtmaterialautocomplete.h>
 #include <qtmaterialavatar.h>
 #include <qtmaterialraisedbutton.h>
 #include <qtmaterialtextfield.h>
-#include "login_proxymodel.h"
 
 namespace MINIOICQ {
+class LoginDelegate : public QStyledItemDelegate {
+    Q_OBJECT
+    public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    private:
+    void paint (QPainter* painter,
+    const QStyleOptionViewItem& option,
+    const QModelIndex& index) const override;
+    QSize sizeHint (const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+    void setEditorData (QWidget* editor, const QModelIndex& index) const override;
+    void setModelData (QWidget* editor,
+    QAbstractItemModel* model,
+    const QModelIndex& index) const override;
+};
+
 class LoginView : public QDialog {
     Q_OBJECT
     public:
@@ -51,16 +68,17 @@ class LoginView : public QDialog {
     void initConnect ();
 
     public slots:
-    void on_model_dataChanged (const QModelIndex& topLeft, const QModelIndex& bottomRight,
-                               const QVector<int>& roles);
+    void on_model_dataChanged (const QModelIndex& topLeft,
+    const QModelIndex& bottomRight,
+    const QVector<int>& roles);
 
     private:
     // data
     QDataWidgetMapper* _mapper;
     LoginProxyModel* _model;
+    QStringListModel* _userIdModel;
     // components
-    QLabel* _title;
-    QLabel* _userName;
+    QtMaterialTextField* _userName;
     QtMaterialAvatar* _avatar;
     QtMaterialAutoComplete* _userId;
     QtMaterialTextField* _password;
