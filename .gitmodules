@@ -1,3 +1,6 @@
 [submodule "client/third_party/qt-material-widgets"]
 	path = client/third_party/qt-material-widgets
 	url = git@github.com:bowling233/qt-material-widgets.git
+[submodule "client/third_party/msgpack"]
+	path = client/third_party/msgpack
+	url = git@github.com:msgpack/msgpack-c.git
