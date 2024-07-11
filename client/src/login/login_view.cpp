@@ -100,11 +100,13 @@ void LoginView::initUI()
     buttonLayout->addWidget(_register);
     layout->addLayout(buttonLayout);
 
-    // window
+    // attributes
+    this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
 void LoginView::initConnect()
 {
+    // component
     connect(_userId, &QtMaterialAutoComplete::itemSelected, this,
             &LoginView::on_userId_itemSelected);
     connect(_login, &QtMaterialRaisedButton::clicked, this,
@@ -128,6 +130,9 @@ void LoginView::setModel(LoginProxyModel* model)
     _mapper->addMapping(_password, _model->passwordColumn());
     _mapper->addMapping(_avatar, _model->avatarColumn());
     _mapper->toFirst();
+    // model
+    connect(this, &LoginView::login, _model, &LoginProxyModel::on_login);
+    connect(this, &LoginView::reg, _model, &LoginProxyModel::on_reg);
 }
 
 void LoginView::on_login_clicked()
@@ -135,9 +140,10 @@ void LoginView::on_login_clicked()
     qDebug() << "LoginView::on_login_clicked";
     QString userId = _userId->text();
     QString password = _password->text();
+    // to LoginModel on_login
     emit login(userId, password);
-    auto res = _mapper->submit();
-    qDebug() << "submit: " << res;
+    // auto res = _mapper->submit();
+    // qDebug() << "submit: " << res;
 }
 
 void LoginView::on_register_clicked()

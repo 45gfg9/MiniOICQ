@@ -6,6 +6,51 @@
 #include <QSqlTableModel>
 #include <QtWidgets/QApplication>
 
+const QString localDBPath = "MINIOICQ/databases/";
+const QString localUserFileName = "localUser.db";
+
+void initDBPath(const QString& dbPath)
+{
+    QDir dir;
+    if (!dir.exists(dbPath))
+    {
+        dir.mkpath(dbPath);
+        if (!dir.exists(dbPath))
+        {
+            qDebug() << "Create db path failed: " << dbPath;
+            throw std::runtime_error("Create db path failed");
+        }
+    }
+}
+
+void initDB(const QString& dbName, QSqlDatabase &db)
+{
+    // create dbfile if not exist
+    QFile localUserFile(localDBPath + dbName);
+    if (!localUserFile.exists())
+    {
+        qDebug() << "Create new db file " << localUserFile.fileName();
+        localUserFile.open(QIODevice::WriteOnly);
+        if (!localUserFile.isOpen())
+        {
+            qDebug() << "Open file failed: " << localUserFile.fileName();
+            throw localUserFile.errorString();
+        }
+        localUserFile.close();
+    }
+    // init database file
+    db = QSqlDatabase::addDatabase("QSQLITE", "users_connection");
+    db.setDatabaseName(localDBPath + dbName);
+    if (!db.open()) {
+        qDebug() << "Open database failed: " << db.lastError();
+        throw db.lastError();
+    }
+    else 
+    {
+        qDebug() << "Open database success: " << db.databaseName();
+    }
+}
+
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
@@ -14,23 +59,11 @@ int main(int argc, char* argv[])
     QFont font("Roboto", 12, QFont::Medium);
     a.setFont(font);
 
-    // Login
-    QSqlDatabase localUsersDB;
-    localUsersDB = QSqlDatabase::addDatabase("QSQLITE", "users_connection");
-    localUsersDB.setDatabaseName(QDir::currentPath() +
-                                 "/MINIOICQ/databases/localUser.db");
-    if (!localUsersDB.open())
-    {
-        qDebug() << "Cannot open database: " << localUsersDB.databaseName()
-                 << "\n";
-        // create the database
-        throw localUsersDB.lastError();
-    }
-    else
-    {
-        qDebug() << "Database: connection ok";
-    }
-    MINIOICQ::LoginModel loginModel(nullptr, localUsersDB);
+    // DB directory
+    initDBPath(localDBPath);
+    QSqlDatabase localUserDB;
+    initDB(localUserFileName, localUserDB);
+    MINIOICQ::LoginModel loginModel(nullptr, localUserDB);
 
     // Debug: print the table
     qDebug() << "Table: " << loginModel.tableName();
@@ -76,9 +109,19 @@ int main(int argc, char* argv[])
 
     MINIOICQ::LoginView loginView;
     loginView.setModel(&loginProxyModel);
+
+    //MINIOICQ::ListView listView;
+
+    // connect the signals
+    // connect();
+
+
+
     if (loginView.exec() == QDialog::Accepted)
     {
         qDebug() << "Login success";
+        // listView->setUserId(loginProxyModel.loggedUserId());
+        // listView.show();
     }
     else
     {
