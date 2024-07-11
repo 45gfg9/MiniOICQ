@@ -65,12 +65,31 @@ LoginView::~LoginView() {}
 
 void LoginView::initUI()
 {
+    /**
+     * @brief
+     *
+     * - QVBoxLayout
+     *      - QLabel: title
+     *      - QHBoxLayout: avatarLayout
+     *          - QtMaterialAvatar: avatar
+     *          - QVBoxLayout: inputLayout
+     *              - QtMaterialTextField: userName
+     *              - QtMaterialAutoComplete: userId
+     *              - QtMaterialTextField: password
+     *     - QHBoxLayout: buttonLayout
+     *          - QtMaterialRaisedButton: login
+     *          - QtMaterialRaisedButton: register
+     */
     // components
     QVBoxLayout* layout = new QVBoxLayout;
+    qDebug() << layout->spacing();
+    layout->setSpacing(30);
+    layout->setContentsMargins(30, 30, 30, 30); // left, top, right, bottom
     setLayout(layout);
 
-    QLabel* title = new QLabel("MINIOICQ Login");
-    title->setAlignment(Qt::AlignCenter);
+    QLabel* title = new QLabel();
+    title->setPixmap(
+        QIcon(":/minioicq.svg").pixmap(QSize(300, 300)).scaledToWidth(300));
     layout->addWidget(title);
 
     QHBoxLayout* avatarLayout = new QHBoxLayout;
@@ -89,7 +108,7 @@ void LoginView::initUI()
     inputLayout->addWidget(_userName);
     inputLayout->addWidget(_userId);
     inputLayout->addWidget(_password);
-
+    inputLayout->setSpacing(5);
     avatarLayout->addLayout(inputLayout);
     layout->addLayout(avatarLayout);
 
@@ -98,6 +117,7 @@ void LoginView::initUI()
     _register = new QtMaterialRaisedButton("Register");
     buttonLayout->addWidget(_login);
     buttonLayout->addWidget(_register);
+    buttonLayout->setSpacing(5);
     layout->addLayout(buttonLayout);
 
     // attributes

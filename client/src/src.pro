@@ -12,6 +12,9 @@ SOURCES = \
     login/login_proxymodel.cpp \
     login/login_model.cpp \
 
+RESOURCES += \
+    resources.qrc
+
 LIBS += ../third_party/qt-material-widgets/components/libcomponents.a
 INCLUDEPATH += ../third_party/qt-material-widgets/components/
 TARGET = client.exe

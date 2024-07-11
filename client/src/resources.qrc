@@ -1,0 +1,5 @@
+<RCC>
+    <qresource>
+        <file alias="minioicq.svg">../resources/minioicq.svg</file>
+    </qresource>
+</RCC>

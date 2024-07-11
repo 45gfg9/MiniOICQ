@@ -45,7 +45,7 @@ void initDB(const QString& dbName, QSqlDatabase &db)
         qDebug() << "Open database failed: " << db.lastError();
         throw db.lastError();
     }
-    else 
+    else
     {
         qDebug() << "Open database success: " << db.databaseName();
     }
@@ -53,10 +53,12 @@ void initDB(const QString& dbName, QSqlDatabase &db)
 
 int main(int argc, char* argv[])
 {
+    Q_INIT_RESOURCE(resources);
+    QFont font("Roboto");
+    // app style
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication a(argc, argv);
     a.setQuitOnLastWindowClosed(true);
-    Q_INIT_RESOURCE(resources);
-    QFont font("Roboto", 12, QFont::Medium);
     a.setFont(font);
 
     // DB directory
