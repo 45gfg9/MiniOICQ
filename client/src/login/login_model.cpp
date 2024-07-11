@@ -8,6 +8,7 @@ LoginModel::LoginModel(QObject* parent, QSqlDatabase db)
 {
     setTable("localUser");
     this->select();
+    this->setEditStrategy(QSqlTableModel::OnFieldChange);
 }
 
 LoginModel::~LoginModel() {}

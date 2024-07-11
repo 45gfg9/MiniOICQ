@@ -136,7 +136,8 @@ void LoginView::on_login_clicked()
     QString userId = _userId->text();
     QString password = _password->text();
     emit login(userId, password);
-    _mapper->submit();
+    auto res = _mapper->submit();
+    qDebug() << "submit: " << res;
 }
 
 void LoginView::on_register_clicked()
