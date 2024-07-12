@@ -73,16 +73,16 @@ private:
 public slots:
 
     // LoginViewModel
-    void loginSuccess();
-    void loginFailed(QString message);
-    void registerSuccess();
-    void registerFailed(QString message);
+    void on_loginSuccess();
+    void on_loginFailed(QString message);
+    void on_regSuccess();
+    void on_regFailed(QString message);
 
 private slots:
 
     // components
     void on_login_clicked();
-    void on_register_clicked();
+    void on_reg_clicked();
     void on_userId_itemSelected(QString userId);
 
 Q_SIGNALS:
@@ -101,7 +101,7 @@ private:
     QtMaterialAutoComplete* _userId;
     QtMaterialTextField* _password;
     QtMaterialRaisedButton* _login;
-    QtMaterialRaisedButton* _register;
+    QtMaterialRaisedButton* _reg;
     QtMaterialSnackbar* _snackbar;
 };
 

@@ -105,16 +105,16 @@ int main(int argc, char* argv[])
     loginViewModel.connect(&loginViewModel, &MINIOICQ::LoginViewModel::login,
                            &wsConnector, &WebSocketConnector::on_login);
     loginViewModel.connect(&loginViewModel, &MINIOICQ::LoginViewModel::reg,
-                           &wsConnector, &WebSocketConnector::on_register);
+                           &wsConnector, &WebSocketConnector::on_reg);
     wsConnector.connect(&wsConnector, &WebSocketConnector::loginSuccess,
                         &loginViewModel,
                         &MINIOICQ::LoginViewModel::on_loginSuccess);
     wsConnector.connect(&wsConnector, &WebSocketConnector::loginFailed,
                         &loginViewModel,
                         &MINIOICQ::LoginViewModel::on_loginFailed);
-    wsConnector.connect(&wsConnector, &WebSocketConnector::registerSuccess,
+    wsConnector.connect(&wsConnector, &WebSocketConnector::regSuccess,
                         &loginViewModel,
-                        &MINIOICQ::LoginViewModel::on_registerSuccess);
+                        &MINIOICQ::LoginViewModel::on_regSuccess);
 
     MINIOICQ::ListView listView;
     if (loginView->exec() == QDialog::Accepted)

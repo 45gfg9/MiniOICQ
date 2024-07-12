@@ -79,7 +79,7 @@ void LoginView::initUI()
      *              - QtMaterialTextField: password
      *     - QHBoxLayout: buttonLayout
      *          - QtMaterialRaisedButton: login
-     *          - QtMaterialRaisedButton: register
+     *          - QtMaterialRaisedButton: reg
      */
 
     _avatar = new QtMaterialAvatar(this);
@@ -87,7 +87,7 @@ void LoginView::initUI()
     _userId = new QtMaterialAutoComplete(this);
     _password = new QtMaterialTextField(this);
     _login = new QtMaterialRaisedButton("Login");
-    _register = new QtMaterialRaisedButton("Register");
+    _reg = new QtMaterialRaisedButton("Register");
     _snackbar = new QtMaterialSnackbar(this);
     QLabel* title = new QLabel(this);
 
@@ -102,7 +102,7 @@ void LoginView::initUI()
     avatarLayout->addWidget(_avatar);
     avatarLayout->addLayout(inputLayout);
     buttonLayout->addWidget(_login);
-    buttonLayout->addWidget(_register);
+    buttonLayout->addWidget(_reg);
     layout->addWidget(title);
     layout->addLayout(avatarLayout);
     layout->addLayout(buttonLayout);
@@ -129,7 +129,7 @@ void LoginView::initUI()
     _password->setEchoMode(QLineEdit::Password);
     // button
     _login->setBackgroundColor(QColor(0, 150, 136));
-    _register->setBackgroundColor(QColor(0, 150, 136));
+    _reg->setBackgroundColor(QColor(0, 150, 136));
     buttonLayout->setSpacing(5);
 }
 
@@ -140,8 +140,8 @@ void LoginView::initConnect()
             &LoginView::on_userId_itemSelected);
     connect(_login, &QtMaterialRaisedButton::clicked, this,
             &LoginView::on_login_clicked);
-    connect(_register, &QtMaterialRaisedButton::clicked, this,
-            &LoginView::on_register_clicked);
+    connect(_reg, &QtMaterialRaisedButton::clicked, this,
+            &LoginView::on_reg_clicked);
 }
 
 void LoginView::setModel(QAbstractItemModel* model)
@@ -163,7 +163,13 @@ void LoginView::setModel(QAbstractItemModel* model)
     connect(this, &LoginView::login, loginViewModel, &LoginViewModel::on_login);
     connect(this, &LoginView::reg, loginViewModel, &LoginViewModel::on_reg);
     connect(loginViewModel, &LoginViewModel::loginSuccess, this,
-            &LoginView::loginSuccess);
+            &LoginView::on_loginSuccess);
+    connect(loginViewModel, &LoginViewModel::loginFail, this,
+            &LoginView::on_loginFail);
+    connect(loginViewModel, &LoginViewModel::regSuccess, this,
+            &LoginView::on_regSuccess);
+    connect(loginViewModel, &LoginViewModel::regFail, this,
+            &LoginView::on_regFail);
 }
 
 void LoginView::on_login_clicked()
@@ -177,9 +183,9 @@ void LoginView::on_login_clicked()
     // qDebug() << "submit: " << res;
 }
 
-void LoginView::on_register_clicked()
+void LoginView::on_reg_clicked()
 {
-    qDebug() << "LoginView::on_register_clicked";
+    qDebug() << "LoginView::on_reg_clicked";
     QString userName = _userName->text();
     QString password = _password->text();
     emit reg(userName, password);
@@ -197,24 +203,24 @@ void LoginView::on_userId_itemSelected(QString userId)
     }
 }
 
-void LoginView::loginSuccess()
+void LoginView::on_loginSuccess()
 {
     qDebug() << "LoginView::loginSuccess";
     _snackbar->addMessage("Login Success");
     accept();
 }
-void LoginView::loginFailed(QString message)
+void LoginView::on_loginFailed(QString message)
 {
     qDebug() << "LoginView::loginFailed";
     _snackbar->addMessage("Login Failed");
 }
-void LoginView::registerSuccess()
+void LoginView::on_regSuccess()
 {
-    qDebug() << "LoginView::registerSuccess";
+    qDebug() << "LoginView::regSuccess";
     _snackbar->addMessage("Register Success");
     accept();
 }
-void LoginView::registerFailed(QString message)
+void LoginView::on_regFailed(QString message)
 {
     qDebug() << "LoginView::registerFailed";
     _snackbar->addMessage(message);
@@ -239,9 +245,9 @@ void LoginView::keyPressEvent(QKeyEvent* event)
         {
             on_login_clicked();
         }
-        else if (_register->hasFocus())
+        else if (_reg->hasFocus())
         {
-            on_register_clicked();
+            on_reg_clicked();
         }
     }
 }

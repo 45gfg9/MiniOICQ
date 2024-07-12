@@ -85,7 +85,7 @@ void WebSocketConnector::onMessageReceived(const QByteArray& message)
         }
         else
         {
-            emit registerSuccess(info);
+            emit regSuccess(info);
         }
     }
     else if (action == "auth.login.fail")
@@ -117,8 +117,8 @@ void WebSocketConnector::on_login(const QString& userid,
     _socket->sendBinaryMessage(QByteArray(sbuf.data(), sbuf.size()));
 }
 
-void WebSocketConnector::on_register(const QString& username,
-                                     const QString& password)
+void WebSocketConnector::on_reg(const QString& username,
+                                const QString& password)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> pk(&sbuf);

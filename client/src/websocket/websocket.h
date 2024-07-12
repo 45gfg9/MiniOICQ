@@ -27,7 +27,7 @@ public slots:
 
     // LoginViewModel
     void on_login(const QString& userid, const QString& password);
-    void on_register(const QString& username, const QString& password);
+    void on_reg(const QString& username, const QString& password);
     void on_send(const AbstractMessage& msg);
 
 signals:
@@ -36,7 +36,7 @@ signals:
     void loginSuccess(const MINIOICQ::UserInfo& info);
     void loginFailed(const QString& reason);
 
-    void registerSuccess(const MINIOICQ::UserInfo& info);
+    void regSuccess(const MINIOICQ::UserInfo& info);
 
 private:
     QWebSocket* _socket;

@@ -61,7 +61,7 @@ void LoginViewModel::on_login(QString userId, QString password)
 
 void LoginViewModel::on_reg(QString userName, QString password)
 {
-    qDebug() << "LoginViewModel::on_register";
+    qDebug() << "LoginViewModel::on_reg";
     emit reg(userName, password);
 }
 
@@ -104,15 +104,21 @@ void LoginViewModel::on_loginSuccess(const UserInfo& info)
 void LoginViewModel::on_loginFailed(const QString& reason)
 {
     qDebug() << "LoginViewModel::loginFailed: " << reason;
-    emit loginFailed();
+    emit loginFailed(reason);
 }
 
-void LoginViewModel::on_registerSuccess(const UserInfo& info)
+void LoginViewModel::on_regSuccess(const UserInfo& info)
 {
     // TODO
-    qDebug() << "LoginViewModel::on_registerSuccess; user_id: "
+    qDebug() << "LoginViewModel::on_regSuccess; user_id: "
              << info.userId();
-    emit registerSuccess();
+    emit regSuccess();
+}
+
+void LoginViewModel::on_regFail(const QString& reason)
+{
+    qDebug() << "LoginViewModel::on_regFail: " << reason;
+    emit regFail(reason);
 }
 
 } // namespace MINIOICQ

@@ -38,8 +38,9 @@ Q_SIGNALS:
     void reg(QString userName, QString password);
     // LoginView
     void loginSuccess();
-    void loginFailed();
-    void registerSuccess();
+    void loginFailed(QString message);
+    void regSuccess();
+    void regFail(QString message);
 
 public slots:
 
@@ -50,7 +51,7 @@ public slots:
     // websocket
     void on_loginSuccess(const UserInfo& info);
     void on_loginFailed(const QString& reason);
-    void on_registerSuccess(const UserInfo& info);
+    void on_regSuccess(const UserInfo& info);
 
 private:
     int _userIdColumn = -1;
