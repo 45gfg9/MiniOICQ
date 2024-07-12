@@ -4,6 +4,7 @@
 #include <QWebSocket>
 #include <QImage>
 
+#include "common/user_info.h"
 #include "message/message.h"
 
 class WebSocketConnector : public QObject
@@ -32,8 +33,7 @@ public slots:
 signals:
     void messageReceived(const QByteArray& message);
 
-    void loginSuccess(QString userId, QString userName, QString password,
-                      QImage avatar);
+    void loginSuccess(const MINIOICQ::UserInfo &info);
     void loginFail();
 
     void registerSuccess(QString userId, QImage avatar);

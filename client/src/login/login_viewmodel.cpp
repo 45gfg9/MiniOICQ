@@ -66,25 +66,24 @@ void LoginViewModel::on_reg(QString userId, QString userName, QString password,
     emit reg(userName, password);
 }
 
-void LoginViewModel::on_loginSuccess(QString userId, QString userName,
-                                     QString password, QImage avatar)
+void LoginViewModel::on_loginSuccess(const UserInfo& info)
 {
     // edit or insert user data
-    auto match_res = match(LoginViewModel::index(0, userIdColumn()), Qt::DisplayRole,
-                              userId, 1, Qt::MatchExactly);
+    auto match_res = match(LoginViewModel::index(0, userIdColumn()),
+                           Qt::DisplayRole, info.userId(), 1, Qt::MatchExactly);
     bool res = false;
     if (!match_res.empty())
     {
         // edit user data
         QModelIndex index = match_res.first();
-        res |= setData(index.siblingAtColumn(userNameColumn()), userName);
-        res |= setData(index.siblingAtColumn(passwordColumn()), password);
-        res |= setData(index.siblingAtColumn(avatarColumn()), avatar);
+        res |= setData(index.siblingAtColumn(userNameColumn()), info.username());
+        res |= setData(index.siblingAtColumn(passwordColumn()), info.password());
+        res |= setData(index.siblingAtColumn(avatarColumn()), info.avatar());
     }
     else
     {
         // update user data
-        res = insertItem(userId, userName, password, avatar);
+        res = insertItem(info.userId(), info.username(), info.password(), info.avatar());
     }
 
     if (!res)
@@ -97,7 +96,7 @@ void LoginViewModel::on_loginSuccess(QString userId, QString userName,
 
     // emit signal to LoginView to show main window
     emit loginSuccess();
-    _loggedUserId = userId;
+    _loggedUserId = info.userId();
 }
 
 void LoginViewModel::on_loginFailed()

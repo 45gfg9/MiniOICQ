@@ -5,6 +5,7 @@
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
 
+#include "common/user_info.h"
 #include "login_model.h"
 
 namespace MINIOICQ
@@ -48,8 +49,7 @@ public slots:
                 QImage avatar);
 
     // websocket
-    void on_loginSuccess(QString userId, QString userName, QString password,
-                         QImage avatar);
+    void on_loginSuccess(const UserInfo &info);
     void on_loginFailed();
     void on_registerSuccess(QString userId, QImage avatar);
 

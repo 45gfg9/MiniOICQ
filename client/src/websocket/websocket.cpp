@@ -76,7 +76,7 @@ void WebSocketConnector::onMessageReceived(const QByteArray& message)
                              avatarData.size());
         QImage image;
         image.loadFromData(byteArray);
-        emit loginSuccess(user_id, user_name, password, image);
+        emit loginSuccess(MINIOICQ::UserInfo(user_id, user_name, password, image));
     }
     else if (action == "auth.login.fail")
     {
