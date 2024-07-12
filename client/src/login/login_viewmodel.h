@@ -40,7 +40,7 @@ Q_SIGNALS:
     void loginSuccess();
     void loginFailed(QString message);
     void regSuccess();
-    void regFail(QString message);
+    void regFailed(QString message);
 
 public slots:
 
@@ -52,6 +52,7 @@ public slots:
     void on_loginSuccess(const UserInfo& info);
     void on_loginFailed(const QString& reason);
     void on_regSuccess(const UserInfo& info);
+    void on_regFailed(const QString& reason);
 
 private:
     int _userIdColumn = -1;

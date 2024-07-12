@@ -164,12 +164,12 @@ void LoginView::setModel(QAbstractItemModel* model)
     connect(this, &LoginView::reg, loginViewModel, &LoginViewModel::on_reg);
     connect(loginViewModel, &LoginViewModel::loginSuccess, this,
             &LoginView::on_loginSuccess);
-    connect(loginViewModel, &LoginViewModel::loginFail, this,
-            &LoginView::on_loginFail);
+    connect(loginViewModel, &LoginViewModel::loginFailed, this,
+            &LoginView::on_loginFailed);
     connect(loginViewModel, &LoginViewModel::regSuccess, this,
             &LoginView::on_regSuccess);
-    connect(loginViewModel, &LoginViewModel::regFail, this,
-            &LoginView::on_regFail);
+    connect(loginViewModel, &LoginViewModel::regFailed, this,
+            &LoginView::on_regFailed);
 }
 
 void LoginView::on_login_clicked()

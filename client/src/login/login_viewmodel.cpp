@@ -115,10 +115,10 @@ void LoginViewModel::on_regSuccess(const UserInfo& info)
     emit regSuccess();
 }
 
-void LoginViewModel::on_regFail(const QString& reason)
+void LoginViewModel::on_regFailed(const QString& reason)
 {
     qDebug() << "LoginViewModel::on_regFail: " << reason;
-    emit regFail(reason);
+    emit regFailed(reason);
 }
 
 } // namespace MINIOICQ
