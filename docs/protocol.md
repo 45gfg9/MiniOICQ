@@ -128,7 +128,7 @@ Whenever a message is received, the server should push it to the recipient:
     "action": "message.push",
     "messages": [
         {
-            "sender": "[sender's id]",
+            "sender": "[sender's chat id]",
             "type": "[type]",
             "content": "[content]",
         },
@@ -141,6 +141,34 @@ And the recipient should respond with:
 ```json
 {
     "action": "message.push.ack",
+}
+```
+
+## Create Group
+
+The client should send a group creation request to the server:
+
+```json
+{
+    "action": "group.invite",
+    "members": [
+        "[user_id]",
+        "[user_id]",
+    ],
+}
+
+The server should send the following message to all members:
+
+```json
+{
+    "action": "group.create",
+    "members": [
+        {
+            "user_id": "[user_id]",
+            "user_name": "[nick]",
+            "avatar": "[avatar]",
+        },
+    ],
 }
 ```
 
