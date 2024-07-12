@@ -1,8 +1,7 @@
 #ifndef CHAT_MANAGER_H
 #define CHAT_MANAGER_H
 
-#include <QMap>
-#include <QPair>
+#include <QVector>
 #include <QVariant>
 
 #include "chat_view.h"
@@ -11,18 +10,30 @@
 namespace MINIOICQ
 {
 
+struct Chat
+{
+    QVariant chatId;
+    ChatView* view;
+    ChatViewModel* viewModel;
+    ChatModel* model;
+};
+
 class ChatManager
 {
 public:
     ChatManager();
     ~ChatManager();
 
+    // from ListView
     void openChat(const QVariant& chatId);
-    void closeChat(const QVariant& chatId);
-    void closeAllChats();
+    void closeAll();
+
+public slots:
+    void on_closeChat(const QVariant& chatId);
 
 private:
-    QMap<QVariant, QPair<ChatView *, ChatViewModel *> > _chats;
+    QSqlDatabase _db;
+    QVector<Chat> _chats;
 };
 
 } // namespace MINIOICQ
