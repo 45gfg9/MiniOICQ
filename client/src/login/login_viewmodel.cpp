@@ -56,13 +56,13 @@ void LoginViewModel::on_login(QString userId, QString password)
 {
     qDebug() << "LoginViewModel::on_login";
     emit login(userId, password);
-    on_loginSuccess(userId, "User", password, QImage());
 }
 
 void LoginViewModel::on_reg(QString userId, QString userName, QString password,
                             QImage avatar)
 {
     qDebug() << "LoginViewModel::on_register";
+    emit reg(userName, password);
 }
 
 void LoginViewModel::on_loginSuccess(QString userId, QString userName,
@@ -104,6 +104,12 @@ void LoginViewModel::on_loginFailed()
 {
     qDebug() << "LoginViewModel::loginFailed";
     emit loginFailed();
+}
+
+void LoginViewModel::on_registerSuccess(QString userId, QImage avatar)
+{
+    qDebug() << "LoginViewModel::on_registerSuccess";
+    emit registerSuccess();
 }
 
 } // namespace MINIOICQ

@@ -4,6 +4,7 @@
 #include "login/login_model.h"
 #include "login/login_view.h"
 #include "login/login_viewmodel.h"
+#include "websocket/websocket.h"
 #include <QDebug>
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
@@ -81,6 +82,19 @@ int main(int argc, char* argv[])
 
     MINIOICQ::LoginView loginView;
     MINIOICQ::bindLoginView(&loginView, &loginViewModel);
+
+    WebSocketConnector wsConnector;
+    wsConnector.connectSocket("ws://localhost:58765");
+    loginViewModel.connect(&loginViewModel, &MINIOICQ::LoginViewModel::login,
+                           &wsConnector, &WebSocketConnector::on_login);
+    loginViewModel.connect(&loginViewModel, &MINIOICQ::LoginViewModel::reg,
+                           &wsConnector, &WebSocketConnector::on_register);
+    wsConnector.connect(&wsConnector, &WebSocketConnector::loginSuccess,
+                        &loginViewModel,
+                        &MINIOICQ::LoginViewModel::on_loginSuccess);
+    wsConnector.connect(&wsConnector, &WebSocketConnector::registerSuccess,
+                        &loginViewModel,
+                        &MINIOICQ::LoginViewModel::on_registerSuccess);
 
     if (loginView.exec() == QDialog::Accepted)
     {

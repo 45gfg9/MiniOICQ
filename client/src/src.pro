@@ -6,6 +6,7 @@ HEADERS = \
     login/login_viewmodel.h \
     login/login_model.h \
     websocket/websocket.h \
+    message/message.h \
     list/list_view.h \
     list/list_viewmodel.h \
     list/list_model.h \
@@ -16,6 +17,7 @@ SOURCES = \
     login/login_viewmodel.cpp \
     login/login_model.cpp \
     websocket/websocket.cpp \
+    message/message.cpp \
     list/list_view.cpp \
     list/list_viewmodel.cpp \
     list/list_model.cpp \

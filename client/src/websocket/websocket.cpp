@@ -1,21 +1,20 @@
-#include <QThread>
-#include <QWebSocket>
+#include <QCryptographicHash>
 
 #include "msgpack.hpp"
 #include "websocket.h"
 
-WebSocketThread::WebSocketThread(QObject* parent)
-    : QThread(parent), _socket(new QWebSocket)
+WebSocketConnector::WebSocketConnector(QObject* parent)
+    : QObject(parent), _socket(new QWebSocket)
 {
     connect(_socket, &QWebSocket::connected, this,
-            &WebSocketThread::onConnected);
+            &WebSocketConnector::onConnected);
     connect(_socket, &QWebSocket::disconnected, this,
-            &WebSocketThread::onDisconnected);
+            &WebSocketConnector::onDisconnected);
     connect(_socket, &QWebSocket::binaryMessageReceived, this,
-            &WebSocketThread::onMessageReceived);
+            &WebSocketConnector::onMessageReceived);
 }
 
-WebSocketThread::~WebSocketThread()
+WebSocketConnector::~WebSocketConnector()
 {
     if (_socket)
     {
@@ -24,47 +23,97 @@ WebSocketThread::~WebSocketThread()
     }
 }
 
-void WebSocketThread::connectSocket(const QString& wsUrl)
+void WebSocketConnector::connectSocket(const QString& wsUrl)
 {
     _wsUrl = QUrl(wsUrl);
     _socket->open(_wsUrl);
 }
 
-void WebSocketThread::disconnectSocket() { _socket->close(); }
+void WebSocketConnector::disconnectSocket() { _socket->close(); }
 
-void WebSocketThread::sendMessage(const QString& message)
+void WebSocketConnector::sendMessage(const QString& message)
 {
     _socket->sendTextMessage(message);
 }
 
-QAbstractSocket::SocketState WebSocketThread::state() const
+QAbstractSocket::SocketState WebSocketConnector::state() const
 {
     return _socket->state();
 }
 
-void WebSocketThread::run() { exec(); }
+void WebSocketConnector::onConnected() { qDebug() << "Connected to" << _wsUrl; }
 
-void WebSocketThread::onConnected() { qDebug() << "Connected to" << _wsUrl; }
-
-void WebSocketThread::onDisconnected()
+void WebSocketConnector::onDisconnected()
 {
     qDebug() << "Disconnected from" << _wsUrl;
 }
 
-void WebSocketThread::onMessageReceived(const QByteArray& message)
+void WebSocketConnector::onMessageReceived(const QByteArray& message)
 {
-    qDebug() << "Received message from [" << _wsUrl
-             << "]: " << message.length();
-    emit messageReceived(message);
+    msgpack::object_handle oh = msgpack::unpack(message.data(), message.size());
+    msgpack::object obj = oh.get();
+
+    if (obj.type != msgpack::type::MAP)
+    {
+        qDebug() << "Invalid message format";
+        return;
+    }
+
+    auto map = obj.as<std::map<std::string, msgpack::object>>();
+    auto action = map["action"].as<std::string>();
+
+    qDebug() << "Received message: action: " << action.c_str();
+
+    if (action == "auth.login.success")
+    {
+        auto user_id = QString::fromStdString(map["user_id"].as<std::string>());
+        auto user_name =
+            QString::fromStdString(map["user_name"].as<std::string>());
+        auto password =
+            QString::fromStdString(map["password"].as<std::string>());
+        auto avatarData = map["avatar"].as<std::vector<uint8_t>>();
+        QByteArray byteArray(reinterpret_cast<const char*>(avatarData.data()),
+                             avatarData.size());
+        QImage image;
+        image.loadFromData(byteArray);
+        emit loginSuccess(user_id, user_name, password, image);
+    }
+    else if (action == "auth.login.fail")
+    {
+        auto reason = QString::fromStdString(map["reason"].as<std::string>());
+        qDebug() << "Login failed: " << reason;
+        emit loginFail();
+    }
+    else
+    {
+        qDebug() << "Unknown action" << action.c_str();
+    }
 }
 
-void WebSocketThread::on_login(const QString& userId, const QString& password)
+void WebSocketConnector::on_login(const QString& userid,
+                                  const QString& password)
 {
-    // somewhere else connect to this slot
-    // connect(loginProxyModel, &LoginProxyModel::login, this,
-    // &WebSocketThread::login); Send login message if success
-    onMessageReceived("loginSuccess");
-    // emit loginSuccess(userId, userName, password, _avatar);
-    // else
-    // emit loginFailed();
+    msgpack::sbuffer sbuf;
+    msgpack::packer<msgpack::sbuffer> pk(&sbuf);
+
+    pk.pack_map(3);
+    pk.pack("action");
+    pk.pack("auth.login");
+    pk.pack("user_id");
+    pk.pack(userid.toStdString());
+    pk.pack("password");
+    pk.pack(password.toStdString());
+
+    _socket->sendBinaryMessage(QByteArray(sbuf.data(), sbuf.size()));
+}
+
+void WebSocketConnector::on_register(const QString& username,
+                                     const QString& password)
+{
+    qDebug() << "Registering user" << username;
+}
+
+void WebSocketConnector::on_send(const AbstractMessage& msg)
+{
+    qDebug() << "Sending message";
 }
