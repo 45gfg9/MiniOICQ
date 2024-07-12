@@ -30,6 +30,7 @@ SOURCES = \
     chat/chat_viewmodel.cpp \
     chat/chat_model.cpp \
     chat/chat_manager.cpp \
+    common/message.cpp \
 
 RESOURCES += \
     resources.qrc

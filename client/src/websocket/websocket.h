@@ -5,7 +5,7 @@
 #include <QWebSocket>
 
 #include "common/user_info.h"
-#include "message/message.h"
+#include "common/message.h"
 
 class WebSocketConnector : public QObject
 {
@@ -28,7 +28,7 @@ public slots:
     // from LoginViewModel
     void on_login(const QString& userid, const QString& password);
     void on_reg(const QString& username, const QString& password);
-    void on_send(const AbstractMessage& msg);
+    void on_send(const MINIOICQ::AbstractMessage& msg);
 
 signals:
     void messageReceived(const QByteArray& message);

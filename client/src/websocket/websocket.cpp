@@ -149,7 +149,7 @@ void WebSocketConnector::on_reg(const QString& username,
     _socket->sendBinaryMessage(QByteArray(sbuf.data(), sbuf.size()));
 }
 
-void WebSocketConnector::on_send(const AbstractMessage& msg)
+void WebSocketConnector::on_send(const MINIOICQ::AbstractMessage& msg)
 {
     qDebug() << "Sending message";
 }
