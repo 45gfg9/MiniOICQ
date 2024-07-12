@@ -83,7 +83,6 @@ void LoginView::initUI()
      */
     // components
     QVBoxLayout* layout = new QVBoxLayout;
-    qDebug() << layout->spacing();
     layout->setSpacing(30);
     layout->setContentsMargins(30, 30, 30, 30); // left, top, right, bottom
     setLayout(layout);

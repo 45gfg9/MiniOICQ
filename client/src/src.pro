@@ -22,7 +22,7 @@ SOURCES = \
 
 RESOURCES += \
     resources.qrc
-
+ 
 DEFINES += MSGPACK_NO_BOOST
 LIBS += ../third_party/qt-material-widgets/components/libcomponents.a
 INCLUDEPATH += \

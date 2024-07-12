@@ -1,9 +1,14 @@
 #ifndef LIST_VIEW_H
 #define LIST_VIEW_H
 
-#include <QWidget>
+#include <QAbstractItemModel>
+#include <QDataWidgetMapper>
 #include <QLabel>
+#include <QScrollArea>
+#include <QWidget>
+#include <qtmaterialappbar.h>
 #include <qtmaterialavatar.h>
+#include <qtmaterialfab.h>
 
 namespace MINIOICQ
 {
@@ -73,25 +78,44 @@ private:
  - QVBoxLayout
     - QtMaterialAppBar
     - QScrollArea
-        - ListViewItems
+        - QVBoxLayout
+            - ListViewItems
  - QtMaterialFloatingActionButton
  */
 
 class ListView : public QWidget
 {
+    Q_OBJECT
+
 public:
     ListView(QWidget* parent = 0);
     ~ListView();
+    void setModel(QAbstractItemModel* model);
 
 private:
     void initUi();
     void initConnect();
 
     // event
-    void mouseReleaseEvent(QMouseEvent* event) override;
+    // void mouseReleaseEvent(QMouseEvent* event) override;
+
+public slots:
+    void sourceModelChanged(const QModelIndex& topLeft,
+                            const QModelIndex& bottomRight,
+                            const QVector<int>& roles);
 
 Q_SIGNALS:
     void clicked(int cid);
+
+private:
+    // bind
+
+    // components
+    QtMaterialAppBar* _appBar;
+    QScrollArea* _scrollArea;
+public:
+    QWidget* _itemList;
+    QtMaterialFloatingActionButton* _closeButton;
 };
 
 } // namespace MINIOICQ

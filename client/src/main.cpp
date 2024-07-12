@@ -1,3 +1,6 @@
+#include "list/list_model.h"
+#include "list/list_view.h"
+#include "list/list_viewmodel.h"
 #include "login/login_model.h"
 #include "login/login_view.h"
 #include "login/login_viewmodel.h"
@@ -59,7 +62,7 @@ int main(int argc, char* argv[])
     QFont font("Roboto");
 
     // app style
-    QApplication::setStyle(&QtMaterialStyle::instance());
+    // QApplication::setStyle(&QtMaterialStyle::instance());
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication a(argc, argv);
     a.setQuitOnLastWindowClosed(true);
@@ -71,66 +74,25 @@ int main(int argc, char* argv[])
     initDB(localUserFileName, localUserDB);
     MINIOICQ::LoginModel loginModel(nullptr, localUserDB);
 
-    // Debug: print the table
-    qDebug() << "Table: " << loginModel.tableName();
-    qDebug() << "Columns: " << loginModel.columnCount();
-    for (int i = 0; i < loginModel.columnCount(); i++)
-    {
-        qDebug() << "Column " << i << ": "
-                 << loginModel.headerData(i, Qt::Horizontal, Qt::DisplayRole);
-    }
-    qDebug() << "Rows: " << loginModel.rowCount();
-    for (int i = 0; i < loginModel.rowCount(); i++)
-    {
-        for (int j = 0; j < loginModel.columnCount() - 1; j++)
-        {
-            qDebug() << "Row " << i << " Column " << j << ": "
-                     << loginModel.data(loginModel.index(i, j),
-                                        Qt::DisplayRole);
-        }
-    }
 
     MINIOICQ::LoginViewModel loginViewModel;
     loginViewModel.setSourceModel(&loginModel);
 
-    // Debug: print the table
-    qDebug() << "LoginViewModel";
-    qDebug() << "Columns: " << loginViewModel.columnCount();
-    for (int i = 0; i < loginViewModel.columnCount(); i++)
-    {
-        qDebug() << "Column " << i << ": "
-                 << loginViewModel.headerData(i, Qt::Horizontal,
-                                              Qt::DisplayRole);
-    }
-    qDebug() << "Rows: " << loginViewModel.rowCount();
-    for (int i = 0; i < loginViewModel.rowCount(); i++)
-    {
-        for (int j = 0; j < loginViewModel.columnCount() - 1; j++)
-        {
-            qDebug() << "Row " << i << " Column " << j << ": "
-                     << loginViewModel.data(loginViewModel.index(i, j),
-                                            Qt::DisplayRole);
-        }
-    }
 
     MINIOICQ::LoginView loginView;
     MINIOICQ::bindLoginView(&loginView, &loginViewModel);
-
-    // MINIOICQ::ListView listView;
-
-    // connect the signals
-    // connect();
 
     if (loginView.exec() == QDialog::Accepted)
     {
         qDebug() << "Login success";
         // listView->setUserId(loginViewModel.loggedUserId());
-        // listView.show();
+        MINIOICQ::ListView listView;
+        listView.show();
     }
     else
     {
         qDebug() << "Login failed";
     }
 
-    return 0;
+    return a.exec();
 }

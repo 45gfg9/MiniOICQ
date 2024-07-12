@@ -6,16 +6,11 @@ namespace MINIOICQ
 
 void LoginViewModel::setSourceModel(LoginModel* model)
 {
-    qDebug() << "LoginViewModel::setSourceModel";
     QSortFilterProxyModel::setSourceModel(model);
     _userIdColumn = model->fieldIndex("userId");
     _userNameColumn = model->fieldIndex("userName");
     _passwordColumn = model->fieldIndex("password");
     _avatarColumn = model->fieldIndex("avatar");
-    qDebug() << "userIdColumn: " << _userIdColumn;
-    qDebug() << "userNameColumn: " << _userNameColumn;
-    qDebug() << "passwordColumn: " << _passwordColumn;
-    qDebug() << "avatarColumn: " << _avatarColumn;
 }
 
 QVariant LoginViewModel::data(const QModelIndex& index, int /*role*/) const

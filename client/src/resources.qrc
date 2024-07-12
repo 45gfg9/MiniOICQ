@@ -1,5 +1,7 @@
 <RCC>
     <qresource>
         <file alias="minioicq.svg">../resources/minioicq.svg</file>
+        <file alias="close.svg">../resources/close.svg</file>
+        <file alias="menu.svg">../resources/menu.svg</file>
     </qresource>
 </RCC>
