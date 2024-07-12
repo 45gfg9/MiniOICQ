@@ -42,11 +42,16 @@ QAbstractSocket::SocketState WebSocketConnector::state() const
     return _socket->state();
 }
 
-void WebSocketConnector::onConnected() { qDebug() << "Connected to" << _wsUrl; }
+void WebSocketConnector::onConnected()
+{
+    qDebug() << "Connected to" << _wsUrl;
+    _isConnected = true;
+}
 
 void WebSocketConnector::onDisconnected()
 {
     qDebug() << "Disconnected from" << _wsUrl;
+    _isConnected = false;
 }
 
 void WebSocketConnector::onMessageReceived(const QByteArray& message)
@@ -103,6 +108,11 @@ void WebSocketConnector::onMessageReceived(const QByteArray& message)
 void WebSocketConnector::on_login(const QString& userid,
                                   const QString& password)
 {
+    if (!_isConnected)
+    {
+        emit loginFailed("Not connected to server");
+        return;
+    }
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> pk(&sbuf);
 
@@ -120,6 +130,11 @@ void WebSocketConnector::on_login(const QString& userid,
 void WebSocketConnector::on_reg(const QString& username,
                                 const QString& password)
 {
+    if(!_isConnected)
+    {
+        emit regFailed("Not connected to server");
+        return;
+    }
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> pk(&sbuf);
 

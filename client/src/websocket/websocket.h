@@ -45,6 +45,7 @@ signals:
 
 private:
     QWebSocket* _socket;
+    bool _isConnected = false;
     QUrl _wsUrl;
 };
 
