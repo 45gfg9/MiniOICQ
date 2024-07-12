@@ -81,47 +81,55 @@ void LoginView::initUI()
      *          - QtMaterialRaisedButton: login
      *          - QtMaterialRaisedButton: register
      */
-    // components
-    QVBoxLayout* layout = new QVBoxLayout;
-    layout->setSpacing(30);
-    layout->setContentsMargins(30, 30, 30, 30); // left, top, right, bottom
-    setLayout(layout);
 
-    QLabel* title = new QLabel();
-    title->setPixmap(
-        QIcon(":/minioicq.svg").pixmap(QSize(300, 300)).scaledToWidth(300));
-    layout->addWidget(title);
+    _avatar = new QtMaterialAvatar(this);
+    _userName = new QtMaterialTextField(this);
+    _userId = new QtMaterialAutoComplete(this);
+    _password = new QtMaterialTextField(this);
+    _login = new QtMaterialRaisedButton("Login");
+    _register = new QtMaterialRaisedButton("Register");
+    QLabel* title = new QLabel(this);
 
+    // arrange
+    QVBoxLayout* layout = new QVBoxLayout(this);
     QHBoxLayout* avatarLayout = new QHBoxLayout;
-    _avatar = new QtMaterialAvatar;
-    _avatar->setSize(150);
-    avatarLayout->addWidget(_avatar);
-
     QVBoxLayout* inputLayout = new QVBoxLayout;
-    _userName = new QtMaterialTextField;
-    _userName->setLabel("User Name");
-    _userId = new QtMaterialAutoComplete;
-    _userId->setLabel("User Id");
-    _password = new QtMaterialTextField;
-    _password->setLabel("Password");
-    _password->setEchoMode(QLineEdit::Password);
+    QHBoxLayout* buttonLayout = new QHBoxLayout;
     inputLayout->addWidget(_userName);
     inputLayout->addWidget(_userId);
     inputLayout->addWidget(_password);
-    inputLayout->setSpacing(5);
+    avatarLayout->addWidget(_avatar);
     avatarLayout->addLayout(inputLayout);
-    layout->addLayout(avatarLayout);
-
-    QHBoxLayout* buttonLayout = new QHBoxLayout;
-    _login = new QtMaterialRaisedButton("Login");
-    _register = new QtMaterialRaisedButton("Register");
     buttonLayout->addWidget(_login);
     buttonLayout->addWidget(_register);
-    buttonLayout->setSpacing(5);
+    layout->addWidget(title);
+    layout->addLayout(avatarLayout);
     layout->addLayout(buttonLayout);
 
-    // attributes
+    // style
+    QPalette palette = QPalette();
+    palette.setColor(QPalette::Background, Qt::white);
+    this->setPalette(palette);
     this->setAttribute(Qt::WA_DeleteOnClose);
+    // layout
+    layout->setSpacing(30);
+    layout->setContentsMargins(30, 30, 30, 30); // left, top, right, bottom
+    // title
+    title->setPixmap(
+        QIcon(":/minioicq.svg").pixmap(QSize(300, 300)).scaledToWidth(300));
+    // avatar
+    _avatar->setSize(150);
+    // inputLayout
+    inputLayout->setSpacing(5);
+    // inputs
+    _userName->setLabel("User Name");
+    _userId->setLabel("User Id");
+    _password->setLabel("Password");
+    _password->setEchoMode(QLineEdit::Password);
+    // button
+    _login->setBackgroundColor(QColor(0, 150, 136));
+    _register->setBackgroundColor(QColor(0, 150, 136));
+    buttonLayout->setSpacing(5);
 }
 
 void LoginView::initConnect()

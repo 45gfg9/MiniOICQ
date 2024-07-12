@@ -38,6 +38,9 @@ void ListViewItem::initUi()
 
     // style
     // item
+    QPalette palette = QPalette();
+    palette.setColor(QPalette::Background, Qt::white);
+    this->setPalette(palette);
     this->setFixedSize(kListViewWidth, kListViewItemHeight);
     // layout: border 16, space 8
     layout->setContentsMargins(16, 16, 16, 16);
