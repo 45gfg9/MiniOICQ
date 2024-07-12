@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS chats (
     cid INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     avatar BLOB,
-    owner_id INTEGER NOT NULL REFERENCES users(user_id)
+    owner_id INTEGER NOT NULL REFERENCES users(user_id),
     creation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

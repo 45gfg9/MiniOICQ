@@ -70,7 +70,7 @@ async def auth_login(uuid, req: dict):
     user_id = 2 or req['user_id']
     password = req['password']
 
-    if (row := conn.execute('SELECT nick_name, pwd_hash, avatar FROM users WHERE user_id = ?', (user_id,)).fetchone()) is None:
+    if (row := conn.execute('SELECT nick, pwd_hash, avatar FROM users WHERE user_id = ?', (user_id,)).fetchone()) is None:
         return {'action': 'auth.login.fail', 'reason': 'User not found'}
     else:
         user_name, pwd, avatar = row
@@ -102,7 +102,7 @@ async def auth_register(uuid, req: dict):
 
     ph = argon2.PasswordHasher()
     pwd_hash = ph.hash(password)
-    user_id, = conn.execute('INSERT INTO users (nick_name, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING user_id', (user_name, pwd_hash, avatar)).fetchone()
+    user_id, = conn.execute('INSERT INTO users (nick, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING user_id', (user_name, pwd_hash, avatar)).fetchone()
     conn.commit()
 
     return {'action': 'auth.register.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
