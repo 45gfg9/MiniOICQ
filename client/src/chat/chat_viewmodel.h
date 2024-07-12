@@ -13,7 +13,7 @@ class ChatViewModel : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    ChatViewModel(QObject* parent = nullptr, QVariant chatId);
+    ChatViewModel(QVariant chatId, QObject* parent = nullptr);
     ~ChatViewModel();
 
     int midColumn() const { return _midColumn; }

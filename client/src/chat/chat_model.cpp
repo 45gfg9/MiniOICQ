@@ -1,12 +1,14 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QDebug>
+#include <QSqlError>
 
 #include "chat_model.h"
 
 namespace MINIOICQ
 {
 
-ChatModel::ChatModel(QObject* parent, QSqlDatabase db, QVariant chatId)
+ChatModel::ChatModel(QSqlDatabase db, QVariant chatId, QObject* parent)
     : QSqlQueryModel(parent), _chatId(chatId), _db(db), _viewName("chat_messages_view_" + chatId.toString())
 {
     qDebug() << "ChatModel::ChatModel()";

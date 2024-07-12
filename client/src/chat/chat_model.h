@@ -11,7 +11,7 @@ class ChatModel : public QSqlQueryModel
     Q_OBJECT
 
 public:
-    ChatModel(QObject* parent = nullptr, QSqlDatabase db, QVariant chatId);
+    ChatModel(QSqlDatabase db, QVariant chatId, QObject* parent = nullptr);
     ~ChatModel();
 
     QVariant chatId() const { return _chatId; }

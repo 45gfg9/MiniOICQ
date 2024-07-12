@@ -18,10 +18,11 @@ struct Chat
     ChatModel* model;
 };
 
-class ChatManager
+class ChatManager: public QObject
 {
+    Q_OBJECT
+
 public:
-    ChatManager();
     ~ChatManager();
 
     // from ListView

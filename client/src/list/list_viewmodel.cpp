@@ -44,4 +44,14 @@ void ListViewModel::on_itemList_clicked(const QVariant& chatId)
     _chatManager->openChat(chatIdStr);
 }
 
+void ListViewModel::on_closeButton_clicked()
+{
+    qDebug() << "ListViewModel::on_closeButton_clicked";
+}
+
+void ListViewModel::on_newMsg(/* QVector<MINIOICQ::Message> & messages */)
+{
+    qDebug() << "ListViewModel::on_newMsg";
+}
+
 } // namespace MINIOICQ

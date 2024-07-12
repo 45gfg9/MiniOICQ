@@ -1,5 +1,5 @@
-#include <QVariant>
 #include <QDebug>
+#include <QVariant>
 #include <algorithm>
 
 #include "chat_manager.h"
@@ -7,26 +7,23 @@
 namespace MINIOICQ
 {
 
-ChatManager::ChatManager() {}
-
 ChatManager::~ChatManager() { closeAll(); }
 
 void ChatManager::openChat(const QVariant& chatId)
 {
     qDebug() << "ChatManager::openChat";
     auto chatIt = std::find_if(_chats.begin(), _chats.end(),
-                               [chatId](const Chat& chat) {
-                                   return chat.chatId == chatId;
-                               });
+                               [chatId](const Chat& chat)
+                               { return chat.chatId == chatId; });
 
-    if(chatIt != _chats.end())
+    if (chatIt != _chats.end())
     {
         return;
     }
 
     ChatView* view = new ChatView();
-    ChatViewModel* viewModel = new ChatViewModel();
-    ChatModel* model = new ChatModel(nullptr, _db, chatId);
+    ChatViewModel* viewModel = new ChatViewModel(chatId);
+    ChatModel* model = new ChatModel(_db, chatId);
     viewModel->setSourceModel(model);
     bindChatView(view, viewModel);
     _chats.push_back({chatId, view, viewModel, model});
@@ -34,7 +31,7 @@ void ChatManager::openChat(const QVariant& chatId)
 
 void ChatManager::closeAll()
 {
-    for(auto& chat : _chats)
+    for (auto& chat : _chats)
     {
         delete chat.view;
         delete chat.viewModel;
@@ -47,10 +44,9 @@ void ChatManager::on_closeChat(const QVariant& chatId)
     qDebug() << "ChatManager::on_closeChat";
     // check if chatId exists
     auto chatIt = std::find_if(_chats.begin(), _chats.end(),
-                               [chatId](const Chat& chat) {
-                                   return chat.chatId == chatId;
-                               });
-    if(chatIt == _chats.end())
+                               [chatId](const Chat& chat)
+                               { return chat.chatId == chatId; });
+    if (chatIt == _chats.end())
     {
         return;
     }

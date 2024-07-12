@@ -3,7 +3,7 @@
 namespace MINIOICQ
 {
 
-ChatViewModel::ChatViewModel(QObject* parent, QVariant chatId)
+ChatViewModel::ChatViewModel(QVariant chatId, QObject* parent)
     : QSortFilterProxyModel(parent)
     , _chatId(chatId) {}
 
