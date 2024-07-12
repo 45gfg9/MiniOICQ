@@ -13,12 +13,34 @@ void ChatViewModel::setSourceModel(ChatModel* model)
 {
     QSortFilterProxyModel::setSourceModel(model);
 
-    _midColumn = model->fieldIndex("mid");
-    _messageColumn = model->fieldIndex("message");
-    _sendTimeColumn = model->fieldIndex("send_time");
-    _senderIdColumn = model->fieldIndex("sender_id");
-    _nameColumn = model->fieldIndex("name");
-    _avatarColumn = model->fieldIndex("avatar");
+    for(int i = 0; i < model->columnCount(); i++)
+    {
+        QString columnName = model->headerData(i, Qt::Horizontal).toString();
+        if (columnName == "mid")
+        {
+            _midColumn = i;
+        }
+        else if (columnName == "message")
+        {
+            _messageColumn = i;
+        }
+        else if (columnName == "send_time")
+        {
+            _sendTimeColumn = i;
+        }
+        else if (columnName == "sender_id")
+        {
+            _senderIdColumn = i;
+        }
+        else if (columnName == "name")
+        {
+            _nameColumn = i;
+        }
+        else if (columnName == "avatar")
+        {
+            _avatarColumn = i;
+        }
+    }
 }
 
 QVariant ChatViewModel::data(const QModelIndex& index, int role) const
