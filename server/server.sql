@@ -1,5 +1,5 @@
 -- users(user_id, nick, pwd_hash, avatar, register_time, last_seen, is_online)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     nick TEXT NOT NULL,
     pwd_hash TEXT NOT NULL,
@@ -10,21 +10,21 @@ CREATE TABLE users (
 );
 
 -- chats(cid, type, creation_time)
-CREATE TABLE chats (
+CREATE TABLE IF NOT EXISTS chats (
     cid INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT NOT NULL CHECK (type IN ('private', 'group')),
     creation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- contacts(cid, inviter_id, invitee_id)
-CREATE TABLE contacts (
+CREATE TABLE IF NOT EXISTS contacts (
     cid INTEGER PRIMARY KEY REFERENCES chats(cid),
     inviter_id INTEGER NOT NULL REFERENCES users(user_id),
     invitee_id INTEGER NOT NULL REFERENCES users(user_id)
 );
 
 -- groups(cid, group_name, avatar, owner_id)
-CREATE TABLE groups (
+CREATE TABLE IF NOT EXISTS groups (
     cid INTEGER PRIMARY KEY REFERENCES chats(cid),
     group_name TEXT NOT NULL,
     avatar BLOB,
@@ -32,7 +32,7 @@ CREATE TABLE groups (
 );
 
 -- messages(cid, mid, content, sender_id, send_time)
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     cid INTEGER NOT NULL REFERENCES chats(cid),
     mid INTEGER NOT NULL,
     content TEXT NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE messages (
 );
 
 -- lastviews(uid, cid, last_view_time)
-CREATE TABLE lastviews (
+CREATE TABLE IF NOT EXISTS lastviews (
     uid INTEGER NOT NULL REFERENCES users(user_id),
     cid INTEGER NOT NULL REFERENCES chats(cid),
     last_view_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -50,7 +50,7 @@ CREATE TABLE lastviews (
 );
 
 -- joins(uid, cid, join_time)
-CREATE TABLE joins (
+CREATE TABLE IF NOT EXISTS joins (
     uid INTEGER NOT NULL REFERENCES users(user_id),
     cid INTEGER NOT NULL REFERENCES groups(cid),
     join_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
