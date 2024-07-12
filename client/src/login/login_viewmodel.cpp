@@ -1,12 +1,12 @@
-#include "login_proxymodel.h"
+#include "login_viewmodel.h"
 #include <QDebug>
 
 namespace MINIOICQ
 {
 
-void LoginProxyModel::setSourceModel(LoginModel* model)
+void LoginViewModel::setSourceModel(LoginModel* model)
 {
-    qDebug() << "LoginProxyModel::setSourceModel";
+    qDebug() << "LoginViewModel::setSourceModel";
     QSortFilterProxyModel::setSourceModel(model);
     _userIdColumn = model->fieldIndex("userId");
     _userNameColumn = model->fieldIndex("userName");
@@ -18,27 +18,27 @@ void LoginProxyModel::setSourceModel(LoginModel* model)
     qDebug() << "avatarColumn: " << _avatarColumn;
 }
 
-QVariant LoginProxyModel::data(const QModelIndex& index, int /*role*/) const
+QVariant LoginViewModel::data(const QModelIndex& index, int /*role*/) const
 {
     return QSortFilterProxyModel::data(index, Qt::DisplayRole);
 }
 
-bool LoginProxyModel::setData(const QModelIndex& index, const QVariant& value,
-                              int /*role*/)
+bool LoginViewModel::setData(const QModelIndex& index, const QVariant& value,
+                             int /*role*/)
 {
-    qDebug() << "LoginProxyModel::setData" /* << index */ << value.type()
+    qDebug() << "LoginViewModel::setData" /* << index */ << value.type()
              << (value.type() == QVariant::ByteArray
                      ? value.toByteArray().size()
                      : value);
     return QSortFilterProxyModel::setData(index, value, Qt::DisplayRole);
 }
 
-bool LoginProxyModel::insertItem(const QVariant& userId,
-                                 const QVariant& userName,
-                                 const QVariant& password,
-                                 const QVariant& avatar)
+bool LoginViewModel::insertItem(const QVariant& userId,
+                                const QVariant& userName,
+                                const QVariant& password,
+                                const QVariant& avatar)
 {
-    qDebug() << "LoginProxyModel::insertItem";
+    qDebug() << "LoginViewModel::insertItem";
     QSqlRecord record;
     record.append(QSqlField("userId", QVariant::Int));
     record.append(QSqlField("userName", QVariant::String));
@@ -57,21 +57,21 @@ bool LoginProxyModel::insertItem(const QVariant& userId,
     return false;
 }
 
-void LoginProxyModel::on_login(QString userId, QString password)
+void LoginViewModel::on_login(QString userId, QString password)
 {
-    qDebug() << "LoginProxyModel::on_login";
+    qDebug() << "LoginViewModel::on_login";
     emit login(userId, password);
     on_loginSuccess(userId, "User", password, QImage());
 }
 
-void LoginProxyModel::on_reg(QString userId, QString userName, QString password,
-                             QImage avatar)
+void LoginViewModel::on_reg(QString userId, QString userName, QString password,
+                            QImage avatar)
 {
-    qDebug() << "LoginProxyModel::on_register";
+    qDebug() << "LoginViewModel::on_register";
 }
 
-void LoginProxyModel::on_loginSuccess(QString userId, QString userName,
-                                      QString password, QImage avatar)
+void LoginViewModel::on_loginSuccess(QString userId, QString userName,
+                                     QString password, QImage avatar)
 {
     // edit or insert user data
     LoginModel* model = qobject_cast<LoginModel*>(sourceModel());
@@ -94,20 +94,20 @@ void LoginProxyModel::on_loginSuccess(QString userId, QString userName,
 
     if (!res)
     {
-        qDebug() << "LoginProxyModel::on_loginSuccess: failed to update user "
+        qDebug() << "LoginViewModel::on_loginSuccess: failed to update user "
                     "data in model";
         throw std::runtime_error("Update user data failed");
     }
-    qDebug() << "LoginProxyModel::loginSuccess";
+    qDebug() << "LoginViewModel::loginSuccess";
 
     // emit signal to LoginView to show main window
     emit loginSuccess(userId);
     _loggedUserId = userId;
 }
 
-void LoginProxyModel::on_loginFailed()
+void LoginViewModel::on_loginFailed()
 {
-    qDebug() << "LoginProxyModel::loginFailed";
+    qDebug() << "LoginViewModel::loginFailed";
     emit loginFailed();
 }
 

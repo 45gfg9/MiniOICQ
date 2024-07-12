@@ -1,5 +1,5 @@
-#ifndef LOGIN_PROXYMODEL_H
-#define LOGIN_PROXYMODEL_H
+#ifndef LOGIN_VIEWMODEL_H
+#define LOGIN_VIEWMODEL_H
 
 #include <QImage>
 #include <QSortFilterProxyModel>
@@ -9,7 +9,7 @@
 
 namespace MINIOICQ
 {
-class LoginProxyModel : public QSortFilterProxyModel
+class LoginViewModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
@@ -61,4 +61,4 @@ private:
 
 } // namespace MINIOICQ
 
-#endif // LOGIN_PROXYMODEL_H
+#endif // LOGIN_VIEWMODEL_H

@@ -1,4 +1,5 @@
 #include "login_view.h"
+#include "login_viewmodel.h"
 
 #include <QDebug>
 #include <QHBoxLayout>
@@ -23,7 +24,7 @@ void LoginDelegate::setEditorData(QWidget* editor,
              QString("QtMaterialAutoComplete"))
     {
         QStringList userIds;
-        auto* model = qobject_cast<const LoginProxyModel*>(index.model());
+        auto* model = qobject_cast<const LoginViewModel*>(index.model());
         for (int i = 0; i < model->rowCount(); i++)
         {
             userIds << model->data(model->index(i, model->userIdColumn()))
@@ -135,24 +136,24 @@ void LoginView::initConnect()
             &LoginView::on_register_clicked);
 }
 
-void LoginView::setModel(LoginProxyModel* model)
+void LoginView::setModel(QAbstractItemModel* model)
 {
-    _model = model;
+    auto* loginViewModel = qobject_cast<LoginViewModel*>(model);
     _mapper = new QDataWidgetMapper(this);
-    _mapper->setModel(_model);
+    _mapper->setModel(model);
     // SubmitPolicy:
     // - AutoSubmit: submit data when widget loses focus
     // - ManualSubmit: submit data manually
     _mapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
     _mapper->setItemDelegate(new LoginDelegate(this));
-    _mapper->addMapping(_userId, _model->userIdColumn());
-    _mapper->addMapping(_userName, _model->userNameColumn());
-    _mapper->addMapping(_password, _model->passwordColumn());
-    _mapper->addMapping(_avatar, _model->avatarColumn());
+    _mapper->addMapping(_userId, loginViewModel->userIdColumn());
+    _mapper->addMapping(_userName, loginViewModel->userNameColumn());
+    _mapper->addMapping(_password, loginViewModel->passwordColumn());
+    _mapper->addMapping(_avatar, loginViewModel->avatarColumn());
     _mapper->toFirst();
     // model
-    connect(this, &LoginView::login, _model, &LoginProxyModel::on_login);
-    connect(this, &LoginView::reg, _model, &LoginProxyModel::on_reg);
+    connect(this, &LoginView::login, loginViewModel, &LoginViewModel::on_login);
+    connect(this, &LoginView::reg, loginViewModel, &LoginViewModel::on_reg);
 }
 
 void LoginView::on_login_clicked()
@@ -179,9 +180,9 @@ void LoginView::on_register_clicked()
 void LoginView::on_userId_itemSelected(QString userId)
 {
     qDebug() << "LoginView::on_userId_itemSelected";
-    auto match = _mapper->model()->match(
-        _mapper->model()->index(0, _model->userIdColumn()), Qt::DisplayRole,
-        userId, 1, Qt::MatchExactly);
+    auto* model = qobject_cast<const LoginViewModel*>(_mapper->model());
+    auto match = model->match(model->index(0, model->userIdColumn()),
+                              Qt::DisplayRole, userId, 1, Qt::MatchExactly);
     if (!match.empty())
     {
         _mapper->setCurrentIndex(match.first().row());
@@ -218,5 +219,10 @@ void LoginView::keyPressEvent(QKeyEvent* event)
         }
     }
 }
+
+void bindLoginView(LoginView* loginView, QAbstractItemModel* loginViewModel)
+{
+    loginView->setModel(loginViewModel);
+};
 
 } // namespace MINIOICQ

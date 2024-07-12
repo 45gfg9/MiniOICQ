@@ -28,7 +28,6 @@
         - QtMaterialRaisedButton
 */
 
-#include "login_proxymodel.h"
 #include <QAbstractItemModel>
 #include <QDataWidgetMapper>
 #include <QDialog>
@@ -57,17 +56,23 @@ private:
 class LoginView : public QDialog
 {
     Q_OBJECT
+
 public:
+
     LoginView(QWidget* parent = nullptr);
     ~LoginView();
-    void setModel(LoginProxyModel* model);
+    void setModel(QAbstractItemModel* model);
 
 private:
     void initUI();
     void initConnect();
 
+    // event
+    void keyPressEvent(QKeyEvent* event) override;
+
 public slots:
 
+    // LoginViewModel
     void loginSuccess();
     void loginFailed();
     void registerSuccess();
@@ -75,21 +80,22 @@ public slots:
 
 private slots:
 
+    // components
     void on_login_clicked();
     void on_register_clicked();
     void on_userId_itemSelected(QString userId);
 
 Q_SIGNALS:
 
+    // LoginViewModel
     void login(QString userId, QString password);
     void reg(QString userId, QString userName, QString password,
                          QImage avatar);
 
 private:
-    // data
+
+    // bind
     QDataWidgetMapper* _mapper;
-    LoginProxyModel* _model;
-    QStringListModel* _userIdModel;
 
     // components
     QtMaterialTextField* _userName;
@@ -98,10 +104,10 @@ private:
     QtMaterialTextField* _password;
     QtMaterialRaisedButton* _login;
     QtMaterialRaisedButton* _register;
-
-    //misc
-    void keyPressEvent(QKeyEvent* event) override;
 };
+
+void bindLoginView(LoginView* view, QAbstractItemModel* model);
+
 } // namespace MINIOICQ
 
 #endif // LOGIN_VIEW_H

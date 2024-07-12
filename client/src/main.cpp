@@ -1,10 +1,11 @@
 #include "login/login_model.h"
-#include "login/login_proxymodel.h"
 #include "login/login_view.h"
+#include "login/login_viewmodel.h"
 #include <QDebug>
 #include <QSortFilterProxyModel>
 #include <QSqlTableModel>
 #include <QtWidgets/QApplication>
+#include <qtmaterialstyle.h>
 
 const QString localDBPath = "MINIOICQ/databases/";
 const QString localUserFileName = "localUser.db";
@@ -23,7 +24,7 @@ void initDBPath(const QString& dbPath)
     }
 }
 
-void initDB(const QString& dbName, QSqlDatabase &db)
+void initDB(const QString& dbName, QSqlDatabase& db)
 {
     // create dbfile if not exist
     QFile localUserFile(localDBPath + dbName);
@@ -41,7 +42,8 @@ void initDB(const QString& dbName, QSqlDatabase &db)
     // init database file
     db = QSqlDatabase::addDatabase("QSQLITE", "users_connection");
     db.setDatabaseName(localDBPath + dbName);
-    if (!db.open()) {
+    if (!db.open())
+    {
         qDebug() << "Open database failed: " << db.lastError();
         throw db.lastError();
     }
@@ -55,7 +57,9 @@ int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE(resources);
     QFont font("Roboto");
+
     // app style
+    QApplication::setStyle(&QtMaterialStyle::instance());
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication a(argc, argv);
     a.setQuitOnLastWindowClosed(true);
@@ -86,43 +90,41 @@ int main(int argc, char* argv[])
         }
     }
 
-    MINIOICQ::LoginProxyModel loginProxyModel;
-    loginProxyModel.setSourceModel(&loginModel);
+    MINIOICQ::LoginViewModel loginViewModel;
+    loginViewModel.setSourceModel(&loginModel);
 
     // Debug: print the table
-    qDebug() << "LoginProxyModel";
-    qDebug() << "Columns: " << loginProxyModel.columnCount();
-    for (int i = 0; i < loginProxyModel.columnCount(); i++)
+    qDebug() << "LoginViewModel";
+    qDebug() << "Columns: " << loginViewModel.columnCount();
+    for (int i = 0; i < loginViewModel.columnCount(); i++)
     {
         qDebug() << "Column " << i << ": "
-                 << loginProxyModel.headerData(i, Qt::Horizontal,
-                                               Qt::DisplayRole);
+                 << loginViewModel.headerData(i, Qt::Horizontal,
+                                              Qt::DisplayRole);
     }
-    qDebug() << "Rows: " << loginProxyModel.rowCount();
-    for (int i = 0; i < loginProxyModel.rowCount(); i++)
+    qDebug() << "Rows: " << loginViewModel.rowCount();
+    for (int i = 0; i < loginViewModel.rowCount(); i++)
     {
-        for (int j = 0; j < loginProxyModel.columnCount() - 1; j++)
+        for (int j = 0; j < loginViewModel.columnCount() - 1; j++)
         {
             qDebug() << "Row " << i << " Column " << j << ": "
-                     << loginProxyModel.data(loginProxyModel.index(i, j),
-                                             Qt::DisplayRole);
+                     << loginViewModel.data(loginViewModel.index(i, j),
+                                            Qt::DisplayRole);
         }
     }
 
     MINIOICQ::LoginView loginView;
-    loginView.setModel(&loginProxyModel);
+    MINIOICQ::bindLoginView(&loginView, &loginViewModel);
 
-    //MINIOICQ::ListView listView;
+    // MINIOICQ::ListView listView;
 
     // connect the signals
     // connect();
 
-
-
     if (loginView.exec() == QDialog::Accepted)
     {
         qDebug() << "Login success";
-        // listView->setUserId(loginProxyModel.loggedUserId());
+        // listView->setUserId(loginViewModel.loggedUserId());
         // listView.show();
     }
     else
