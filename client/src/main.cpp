@@ -75,6 +75,24 @@ int main(int argc, char* argv[])
     initDB(localUserFileName, localUserDB);
     MINIOICQ::LoginModel loginModel(nullptr, localUserDB);
 
+    // Debug: print the table
+    qDebug() << "Table: " << loginModel.tableName();
+    qDebug() << "Columns: " << loginModel.columnCount();
+    for (int i = 0; i < loginModel.columnCount(); i++)
+    {
+        qDebug() << "Column " << i << ": "
+                 << loginModel.headerData(i, Qt::Horizontal, Qt::DisplayRole);
+    }
+    qDebug() << "Rows: " << loginModel.rowCount();
+    for (int i = 0; i < loginModel.rowCount(); i++)
+    {
+        for (int j = 0; j < loginModel.columnCount() - 1; j++)
+        {
+            qDebug() << "Row " << i << " Column " << j << ": "
+                     << loginModel.data(loginModel.index(i, j),
+                                        Qt::DisplayRole);
+        }
+    }
 
     MINIOICQ::LoginViewModel loginViewModel;
     loginViewModel.setSourceModel(&loginModel);
