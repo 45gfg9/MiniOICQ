@@ -39,6 +39,8 @@ namespace MINIOICQ
  */
 class ListViewItem : public QWidget
 {
+    Q_OBJECT
+
 public:
     ListViewItem(QWidget* parent = 0);
     ~ListViewItem();
@@ -54,6 +56,8 @@ private:
     QLabel* _lastTime;
     QLabel* _lastMsg;
     QLabel* _unRead;
+
+    friend class ListView;
 };
 
 /**
@@ -90,33 +94,35 @@ class ListView : public QWidget
 public:
     ListView(QWidget* parent = 0);
     ~ListView();
-    void setModel(QAbstractItemModel* model);
 
 private:
     void initUi();
     void initConnect();
+    void setModel(QAbstractItemModel* model);
 
     // event
     // void mouseReleaseEvent(QMouseEvent* event) override;
 
 public slots:
-    void sourceModelChanged(const QModelIndex& topLeft,
-                            const QModelIndex& bottomRight,
-                            const QVector<int>& roles);
+    void on_dataChanged();
 
 Q_SIGNALS:
     void clicked(int cid);
 
 private:
     // bind
+    QVector<QDataWidgetMapper*> _mappers;
 
     // components
     QtMaterialAppBar* _appBar;
     QScrollArea* _scrollArea;
-public:
     QWidget* _itemList;
     QtMaterialFloatingActionButton* _closeButton;
+
+    friend void bindListView(ListView* view, QAbstractItemModel* model);
 };
+
+void bindListView(ListView* view, QAbstractItemModel* model);
 
 } // namespace MINIOICQ
 
