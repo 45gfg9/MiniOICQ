@@ -1,0 +1,33 @@
+name: Build Qt
+on:
+  push:
+    paths:
+      - '*.pro'
+      - 'client/**'
+      - '.github/workflows/qt.yml'
+  pull_request:
+    paths:
+      - '*.pro'
+      - 'client/**'
+      - '.github/workflows/qt.yml'
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '5.15'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: 'recursive'
+      - name: build
+        run: |
+          cd client
+          qmake
+          make
