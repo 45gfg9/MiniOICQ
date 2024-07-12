@@ -1,9 +1,12 @@
+#include "list_viewmodel.h"
 #include <QSortFilterProxyModel>
-#include "list_proxymodel.h"
+#include <QSqlRecord>
+#include <QDebug>
 
-namespace MINIOICQ {
+namespace MINIOICQ
+{
 
-void ListProxyModel::setSourceModel(ListModel* model)
+void ListViewModel::setSourceModel(ListModel* model)
 {
     QSortFilterProxyModel::setSourceModel(model);
     _chatIdColumn = model->record().indexOf("cid");
@@ -14,17 +17,18 @@ void ListProxyModel::setSourceModel(ListModel* model)
     _chatUnreadMessageCountColumn = model->record().indexOf("un_read_count");
 }
 
-QVariant ListProxyModel::data(const QModelIndex& index, int role) const
+QVariant ListViewModel::data(const QModelIndex& index, int role) const
 {
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole)
+    {
         return QSortFilterProxyModel::data(index, role);
     }
     return QVariant();
 }
 
-void ListProxyModel::on_click_chat(const QVariant &chatId)
+void ListViewModel::on_click_chat(const QVariant& chatId)
 {
-    qDebug() << "ListProxyModel::on_click_chat";
+    qDebug() << "ListViewModel::on_click_chat";
     // Open chat window
     emit open_chat(chatId);
 }

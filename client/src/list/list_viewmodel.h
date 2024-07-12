@@ -1,12 +1,14 @@
-#ifndef LIST_PORXYMODEL_H
-#define LIST_PORXYMODEL_H
+#ifndef LIST_VIEWMODEL_H
+#define LIST_VIEWMODEL_H
 
-#include <QSortFilterProxyModel>
 #include "list_model.h"
+#include <QSortFilterProxyModel>
 
-namespace MINIOICQ {
+namespace MINIOICQ
+{
 
-class ListProxyModel : public QSortFilterProxyModel {
+class ListViewModel : public QSortFilterProxyModel
+{
     Q_OBJECT
 
 public:
@@ -15,10 +17,14 @@ public:
     int chatAvatarColumn() const { return _chatAvatarColumn; }
     int chatLastMessageColumn() const { return _chatLastMessageColumn; }
     int chatLastMessageTimeColumn() const { return _chatLastMessageTimeColumn; }
-    int chatUnreadMessageCountColumn() const { return _chatUnreadMessageCountColumn; }
+    int chatUnreadMessageCountColumn() const
+    {
+        return _chatUnreadMessageCountColumn;
+    }
 
     void setSourceModel(ListModel* model);
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    QVariant data(const QModelIndex& index,
+                  int role = Qt::DisplayRole) const override;
 
 Q_SIGNALS:
     void open_chat(QVariant chatId);
@@ -37,4 +43,4 @@ private:
 
 } // namespace MINIOICQ
 
-#endif // LIST_PORXYMODEL_H
+#endif // LIST_VIEWMODEL_H

@@ -6,6 +6,9 @@ HEADERS = \
     login/login_viewmodel.h \
     login/login_model.h \
     websocket/websocket.h \
+    list/list_view.h \
+    list/list_viewmodel.h \
+    list/list_model.h \
 
 SOURCES = \
     main.cpp \
@@ -13,6 +16,9 @@ SOURCES = \
     login/login_viewmodel.cpp \
     login/login_model.cpp \
     websocket/websocket.cpp \
+    list/list_view.cpp \
+    list/list_viewmodel.cpp \
+    list/list_model.cpp \
 
 RESOURCES += \
     resources.qrc

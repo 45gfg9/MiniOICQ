@@ -1,5 +1,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QDebug>
+#include <QSqlError>
 
 #include "list_model.h"
 
