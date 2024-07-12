@@ -1,4 +1,5 @@
 #include "chat_viewmodel.h"
+#include <QSqlRecord>
 
 namespace MINIOICQ
 {
@@ -13,34 +14,13 @@ void ChatViewModel::setSourceModel(ChatModel* model)
 {
     QSortFilterProxyModel::setSourceModel(model);
 
-    for(int i = 0; i < model->columnCount(); i++)
-    {
-        QString columnName = model->headerData(i, Qt::Horizontal).toString();
-        if (columnName == "mid")
-        {
-            _midColumn = i;
-        }
-        else if (columnName == "message")
-        {
-            _messageColumn = i;
-        }
-        else if (columnName == "send_time")
-        {
-            _sendTimeColumn = i;
-        }
-        else if (columnName == "sender_id")
-        {
-            _senderIdColumn = i;
-        }
-        else if (columnName == "name")
-        {
-            _nameColumn = i;
-        }
-        else if (columnName == "avatar")
-        {
-            _avatarColumn = i;
-        }
-    }
+    _midColumn = model->record().indexOf("mid");
+    _messageColumn = model->record().indexOf("message");
+    _sendTimeColumn = model->record().indexOf("send_time");
+    _senderIdColumn = model->record().indexOf("sender_id");
+    _nameColumn = model->record().indexOf("name");
+    _avatarColumn = model->record().indexOf("avatar");
+
 }
 
 QVariant ChatViewModel::data(const QModelIndex& index, int role) const
