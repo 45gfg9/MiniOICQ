@@ -18,6 +18,7 @@ WebSocketConnector::~WebSocketConnector()
 {
     if (_socket)
     {
+        disconnectSocket();
         _socket->deleteLater();
         _socket = nullptr;
     }
@@ -64,7 +65,7 @@ void WebSocketConnector::onMessageReceived(const QByteArray& message)
 
     qDebug() << "Received message: action: " << action.c_str();
 
-    if (action == "auth.login.success")
+    if (action == "auth.login.success" || action == "auth.register.success")
     {
         auto user_id = QString::fromStdString(map["user_id"].as<std::string>());
         auto user_name =
@@ -76,13 +77,22 @@ void WebSocketConnector::onMessageReceived(const QByteArray& message)
                              avatarData.size());
         QImage image;
         image.loadFromData(byteArray);
-        emit loginSuccess(MINIOICQ::UserInfo(user_id, user_name, password, image));
+
+        MINIOICQ::UserInfo info(user_id, user_name, password, image);
+        if (action == "auth.login.success")
+        {
+            emit loginSuccess(info);
+        }
+        else
+        {
+            emit registerSuccess(info);
+        }
     }
     else if (action == "auth.login.fail")
     {
         auto reason = QString::fromStdString(map["reason"].as<std::string>());
         qDebug() << "Login failed: " << reason;
-        emit loginFail();
+        emit loginFailed(reason);
     }
     else
     {
@@ -110,7 +120,18 @@ void WebSocketConnector::on_login(const QString& userid,
 void WebSocketConnector::on_register(const QString& username,
                                      const QString& password)
 {
-    qDebug() << "Registering user" << username;
+    msgpack::sbuffer sbuf;
+    msgpack::packer<msgpack::sbuffer> pk(&sbuf);
+
+    pk.pack_map(3);
+    pk.pack("action");
+    pk.pack("auth.register");
+    pk.pack("user_name");
+    pk.pack(username.toStdString());
+    pk.pack("password");
+    pk.pack(password.toStdString());
+
+    _socket->sendBinaryMessage(QByteArray(sbuf.data(), sbuf.size()));
 }
 
 void WebSocketConnector::on_send(const AbstractMessage& msg)

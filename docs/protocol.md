@@ -18,6 +18,8 @@ Server should respond with a success.
 {
     "action": "auth.register.success",
     "user_id": "[generated user ID]",
+    "user_name": "[user name]",
+    "password": "[user's password]",
     "avatar": "[generated avatar]",
 }
 ```
@@ -39,7 +41,9 @@ Server should respond with a success or an error if the password is incorrect.
 ```json
 {
     "action": "auth.login.success",
+    "user_id": "[user ID]",
     "user_name": "[user name]",
+    "password": "[user's password]",
     "avatar": "[avatar]",
 }
 ```
@@ -47,8 +51,14 @@ Server should respond with a success or an error if the password is incorrect.
 ```json
 {
     "action": "auth.login.fail",
+    "reason": "[reason]",
 }
 ```
+
+`reason` can be one of the following:
+
+- `User not found`
+- `Incorrect password`
 
 ## Logout
 

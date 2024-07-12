@@ -109,6 +109,9 @@ int main(int argc, char* argv[])
     wsConnector.connect(&wsConnector, &WebSocketConnector::loginSuccess,
                         &loginViewModel,
                         &MINIOICQ::LoginViewModel::on_loginSuccess);
+    wsConnector.connect(&wsConnector, &WebSocketConnector::loginFailed,
+                        &loginViewModel,
+                        &MINIOICQ::LoginViewModel::on_loginFailed);
     wsConnector.connect(&wsConnector, &WebSocketConnector::registerSuccess,
                         &loginViewModel,
                         &MINIOICQ::LoginViewModel::on_registerSuccess);

@@ -171,11 +171,9 @@ void LoginView::on_login_clicked()
 void LoginView::on_register_clicked()
 {
     qDebug() << "LoginView::on_register_clicked";
-    QString userId = _userId->text();
     QString userName = _userName->text();
     QString password = _password->text();
-    QImage avatar = _avatar->image();
-    emit reg(userId, userName, password, avatar);
+    emit reg(userName, password);
 }
 
 void LoginView::on_userId_itemSelected(QString userId)

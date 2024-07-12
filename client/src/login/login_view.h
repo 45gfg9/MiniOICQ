@@ -58,7 +58,6 @@ class LoginView : public QDialog
     Q_OBJECT
 
 public:
-
     LoginView(QWidget* parent = nullptr);
     ~LoginView();
     void setModel(QAbstractItemModel* model);
@@ -89,11 +88,9 @@ Q_SIGNALS:
 
     // LoginViewModel
     void login(QString userId, QString password);
-    void reg(QString userId, QString userName, QString password,
-                         QImage avatar);
+    void reg(QString userName, QString password);
 
 private:
-
     // bind
     QDataWidgetMapper* _mapper;
 

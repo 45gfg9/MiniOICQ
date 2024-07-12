@@ -1,8 +1,8 @@
 #ifndef WEBSOCKET_H
 #define WEBSOCKET_H
 
-#include <QWebSocket>
 #include <QImage>
+#include <QWebSocket>
 
 #include "common/user_info.h"
 #include "message/message.h"
@@ -28,15 +28,15 @@ public slots:
     // LoginViewModel
     void on_login(const QString& userid, const QString& password);
     void on_register(const QString& username, const QString& password);
-    void on_send(const AbstractMessage &msg);
+    void on_send(const AbstractMessage& msg);
 
 signals:
     void messageReceived(const QByteArray& message);
 
-    void loginSuccess(const MINIOICQ::UserInfo &info);
-    void loginFail();
+    void loginSuccess(const MINIOICQ::UserInfo& info);
+    void loginFailed(const QString& reason);
 
-    void registerSuccess(QString userId, QImage avatar);
+    void registerSuccess(const MINIOICQ::UserInfo& info);
 
 private:
     QWebSocket* _socket;

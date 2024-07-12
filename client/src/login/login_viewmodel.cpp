@@ -59,8 +59,7 @@ void LoginViewModel::on_login(QString userId, QString password)
     emit login(userId, password);
 }
 
-void LoginViewModel::on_reg(QString userId, QString userName, QString password,
-                            QImage avatar)
+void LoginViewModel::on_reg(QString userName, QString password)
 {
     qDebug() << "LoginViewModel::on_register";
     emit reg(userName, password);
@@ -76,14 +75,17 @@ void LoginViewModel::on_loginSuccess(const UserInfo& info)
     {
         // edit user data
         QModelIndex index = match_res.first();
-        res |= setData(index.siblingAtColumn(userNameColumn()), info.username());
-        res |= setData(index.siblingAtColumn(passwordColumn()), info.password());
+        res |=
+            setData(index.siblingAtColumn(userNameColumn()), info.username());
+        res |=
+            setData(index.siblingAtColumn(passwordColumn()), info.password());
         res |= setData(index.siblingAtColumn(avatarColumn()), info.avatar());
     }
     else
     {
         // update user data
-        res = insertItem(info.userId(), info.username(), info.password(), info.avatar());
+        res = insertItem(info.userId(), info.username(), info.password(),
+                         info.avatar());
     }
 
     if (!res)
@@ -99,16 +101,18 @@ void LoginViewModel::on_loginSuccess(const UserInfo& info)
     _loggedUserId = info.userId();
 }
 
-void LoginViewModel::on_loginFailed()
+void LoginViewModel::on_loginFailed(const QString& reason)
 {
-    qDebug() << "LoginViewModel::loginFailed";
+    qDebug() << "LoginViewModel::loginFailed: " << reason;
     emit loginFailed();
 }
 
-void LoginViewModel::on_registerSuccess(QString userId, QImage avatar)
+void LoginViewModel::on_registerSuccess(const UserInfo& info)
 {
-    qDebug() << "LoginViewModel::on_registerSuccess";
-    // emit registerSuccess();
+    // TODO
+    qDebug() << "LoginViewModel::on_registerSuccess; user_id: "
+             << info.userId();
+    emit registerSuccess();
 }
 
 } // namespace MINIOICQ

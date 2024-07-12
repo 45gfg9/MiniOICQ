@@ -138,7 +138,7 @@ async def auth_login(uuid, req: dict):
         conn.execute('UPDATE users SET pwd_hash = ? WHERE user_id = ?', (new_pwd, user_id))
         conn.commit()
 
-    return {'action': 'auth.login.success', 'user_id': 'User', 'user_name': user_name, 'password': password, 'avatar': avatar}
+    return {'action': 'auth.login.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
 
 
 @app.route('auth.register')
@@ -147,12 +147,15 @@ async def auth_register(uuid, req: dict):
     user_name = req['user_name']
     password = req['password']
 
+    with open('default.jpg', 'rb') as f:
+        avatar = f.read()
+
     ph = argon2.PasswordHasher()
     pwd_hash = ph.hash(password)
-    user_id, avatar = conn.execute('INSERT INTO users (nick_name, pwd_hash) VALUES (?, ?) RETURNING user_id, avatar', (user_name, pwd_hash)).fetchone()
+    user_id, = conn.execute('INSERT INTO users (nick_name, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING user_id', (user_name, pwd_hash, avatar)).fetchone()
     conn.commit()
 
-    return {'action': 'auth.register.success', 'user_id': user_id, 'avatar': avatar}
+    return {'action': 'auth.register.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
 
 
 with sqlite3.connect(DB_FILE) as conn:
