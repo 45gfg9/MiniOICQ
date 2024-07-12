@@ -25,7 +25,7 @@ bool LoginViewModel::setData(const QModelIndex& index, const QVariant& value,
              << (value.type() == QVariant::ByteArray
                      ? value.toByteArray().size()
                      : value);
-    return QSortFilterProxyModel::setData(index, value, Qt::DisplayRole);
+    return QSortFilterProxyModel::setData(index, value, Qt::EditRole);
 }
 
 bool LoginViewModel::insertItem(const QVariant& userId,
@@ -49,6 +49,7 @@ bool LoginViewModel::insertItem(const QVariant& userId,
     {
         return model->submitAll();
     }
+    qDebug() << "LoginViewModel::insertItem: failed to insert record";
     return false;
 }
 
@@ -69,17 +70,16 @@ void LoginViewModel::on_loginSuccess(QString userId, QString userName,
                                      QString password, QImage avatar)
 {
     // edit or insert user data
-    LoginModel* model = qobject_cast<LoginModel*>(sourceModel());
-    auto match = model->match(model->index(0, userIdColumn()), Qt::DisplayRole,
+    auto match_res = match(LoginViewModel::index(0, userIdColumn()), Qt::DisplayRole,
                               userId, 1, Qt::MatchExactly);
     bool res = false;
-    if (!match.empty())
+    if (!match_res.empty())
     {
         // edit user data
-        QModelIndex index = match.first();
-        res |= model->setData(index, userName, userNameColumn());
-        res |= model->setData(index, password, passwordColumn());
-        res |= model->setData(index, avatar, avatarColumn());
+        QModelIndex index = match_res.first();
+        res |= setData(index.siblingAtColumn(userNameColumn()), userName);
+        res |= setData(index.siblingAtColumn(passwordColumn()), password);
+        res |= setData(index.siblingAtColumn(avatarColumn()), avatar);
     }
     else
     {
@@ -96,7 +96,7 @@ void LoginViewModel::on_loginSuccess(QString userId, QString userName,
     qDebug() << "LoginViewModel::loginSuccess";
 
     // emit signal to LoginView to show main window
-    emit loginSuccess(userId);
+    emit loginSuccess();
     _loggedUserId = userId;
 }
 
@@ -109,7 +109,7 @@ void LoginViewModel::on_loginFailed()
 void LoginViewModel::on_registerSuccess(QString userId, QImage avatar)
 {
     qDebug() << "LoginViewModel::on_registerSuccess";
-    emit registerSuccess();
+    // emit registerSuccess();
 }
 
 } // namespace MINIOICQ

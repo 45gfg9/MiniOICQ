@@ -153,6 +153,8 @@ void LoginView::setModel(QAbstractItemModel* model)
     // model
     connect(this, &LoginView::login, loginViewModel, &LoginViewModel::on_login);
     connect(this, &LoginView::reg, loginViewModel, &LoginViewModel::on_reg);
+    connect(loginViewModel, &LoginViewModel::loginSuccess, this,
+            &LoginView::loginSuccess);
 }
 
 void LoginView::on_login_clicked()
@@ -188,7 +190,11 @@ void LoginView::on_userId_itemSelected(QString userId)
     }
 }
 
-void LoginView::loginSuccess() { qDebug() << "LoginView::loginSuccess"; }
+void LoginView::loginSuccess()
+{
+    qDebug() << "LoginView::loginSuccess";
+    this->accept();
+}
 void LoginView::loginFailed() { qDebug() << "LoginView::loginFailed"; }
 void LoginView::registerSuccess() { qDebug() << "LoginView::registerSuccess"; }
 void LoginView::registerFailed() { qDebug() << "LoginView::registerFailed"; }

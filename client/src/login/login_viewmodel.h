@@ -36,7 +36,7 @@ Q_SIGNALS:
     void login(const QString& userId, const QString& password);
     void reg(QString userName, QString password);
     // LoginView
-    void loginSuccess(const QString& userId);
+    void loginSuccess();
     void loginFailed();
 
 public slots:
