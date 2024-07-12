@@ -2,6 +2,8 @@
 #define LIST_VIEWMODEL_H
 
 #include "list_model.h"
+#include "websocket/websocket.h"
+#include "chat/chat_manager.h"
 #include <QSortFilterProxyModel>
 
 namespace MINIOICQ
@@ -26,11 +28,16 @@ public:
     QVariant data(const QModelIndex& index,
                   int role = Qt::DisplayRole) const override;
 
-Q_SIGNALS:
-    void open_chat(QVariant chatId);
+    void setWsConnector(WebSocketConnector* wsConnector);
 
 public slots:
-    void on_click_chat(const QVariant& chatId);
+
+    // from ListView
+    void on_itemList_clicked(const QVariant& chatId);
+    void on_closeButton_clicked();
+
+    // from WebSocketConnector
+    void on_newMsg(/* QVector<MINIOICQ::Message> & messages */);
 
 private:
     int _chatIdColumn = -1;
@@ -39,6 +46,8 @@ private:
     int _chatLastMessageColumn = -1;
     int _chatLastMessageTimeColumn = -1;
     int _chatUnreadMessageCountColumn = -1;
+
+    ChatManager* _chatManager = nullptr;
 };
 
 } // namespace MINIOICQ

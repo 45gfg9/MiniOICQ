@@ -6,6 +6,7 @@
 #include <QSqlTableModel>
 
 #include "common/user_info.h"
+#include "websocket/websocket.h"
 #include "login_model.h"
 
 namespace MINIOICQ
@@ -32,11 +33,15 @@ public:
     bool insertItem(const QVariant& userId, const QVariant& userName,
                     const QVariant& password, const QVariant& avatar);
 
+    void setWsConnector(WebSocketConnector* wsConnector);
+
 Q_SIGNALS:
-    // websocket
+
+    // to WebSocketConnector
     void login(const QString& userId, const QString& password);
     void reg(QString userName, QString password);
-    // LoginView
+
+    // to LoginView
     void loginSuccess();
     void loginFailed(QString message);
     void regSuccess();
@@ -48,7 +53,7 @@ public slots:
     void on_login(QString userId, QString password);
     void on_reg(QString userName, QString password);
 
-    // websocket
+    // from WebSockerConnector
     void on_loginSuccess(const UserInfo& info);
     void on_loginFailed(const QString& reason);
     void on_regSuccess(const UserInfo& info);

@@ -36,8 +36,8 @@
 #include <qtmaterialautocomplete.h>
 #include <qtmaterialavatar.h>
 #include <qtmaterialraisedbutton.h>
-#include <qtmaterialtextfield.h>
 #include <qtmaterialsnackbar.h>
+#include <qtmaterialtextfield.h>
 
 namespace MINIOICQ
 {
@@ -61,11 +61,11 @@ class LoginView : public QDialog
 public:
     LoginView(QWidget* parent = nullptr);
     ~LoginView();
-    void setModel(QAbstractItemModel* model);
 
 private:
     void initUI();
     void initConnect();
+    void setModel(QAbstractItemModel* model);
 
     // event
     void keyPressEvent(QKeyEvent* event) override;
@@ -103,6 +103,8 @@ private:
     QtMaterialRaisedButton* _login;
     QtMaterialRaisedButton* _reg;
     QtMaterialSnackbar* _snackbar;
+
+    friend void bindLoginView(LoginView* view, QAbstractItemModel* model);
 };
 
 void bindLoginView(LoginView* view, QAbstractItemModel* model);

@@ -25,7 +25,7 @@ public slots:
     void onDisconnected();
     void onMessageReceived(const QByteArray& message);
 
-    // LoginViewModel
+    // from LoginViewModel
     void on_login(const QString& userid, const QString& password);
     void on_reg(const QString& username, const QString& password);
     void on_send(const AbstractMessage& msg);
@@ -33,10 +33,15 @@ public slots:
 signals:
     void messageReceived(const QByteArray& message);
 
+    // to LoginViewModel
     void loginSuccess(const MINIOICQ::UserInfo& info);
     void loginFailed(const QString& reason);
-
     void regSuccess(const MINIOICQ::UserInfo& info);
+    void regFailed(const QString& reason);
+
+    // to ListViewModel
+    void newMsg(/* QVector<MINIOICQ::Message> & messages */);
+    void newChat(/* MINIOICQ::ChatInfo */);
 
 private:
     QWebSocket* _socket;

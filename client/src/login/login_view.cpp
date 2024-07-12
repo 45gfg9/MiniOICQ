@@ -212,7 +212,7 @@ void LoginView::on_loginSuccess()
 void LoginView::on_loginFailed(QString message)
 {
     qDebug() << "LoginView::loginFailed";
-    _snackbar->addMessage("Login Failed");
+    _snackbar->addMessage(message);
 }
 void LoginView::on_regSuccess()
 {

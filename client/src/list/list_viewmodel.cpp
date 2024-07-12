@@ -1,7 +1,7 @@
 #include "list_viewmodel.h"
+#include <QDebug>
 #include <QSortFilterProxyModel>
 #include <QSqlRecord>
-#include <QDebug>
 
 namespace MINIOICQ
 {
@@ -15,6 +15,7 @@ void ListViewModel::setSourceModel(ListModel* model)
     _chatLastMessageColumn = model->record().indexOf("last_message");
     _chatLastMessageTimeColumn = model->record().indexOf("last_send_time");
     _chatUnreadMessageCountColumn = model->record().indexOf("un_read_count");
+    _chatManager = new ChatManager();
 }
 
 QVariant ListViewModel::data(const QModelIndex& index, int role) const
@@ -23,14 +24,24 @@ QVariant ListViewModel::data(const QModelIndex& index, int role) const
     {
         return QSortFilterProxyModel::data(index, role);
     }
+    else
+    {
+        qDebug() << "ListViewModel::data: role not supported";
+    }
     return QVariant();
 }
 
-void ListViewModel::on_click_chat(const QVariant& chatId)
+void ListViewModel::setWsConnector(WebSocketConnector* wsConnector)
 {
-    qDebug() << "ListViewModel::on_click_chat";
-    // Open chat window
-    emit open_chat(chatId);
+    connect(wsConnector, &WebSocketConnector::newMsg, this,
+            &ListViewModel::on_newMsg);
+}
+
+void ListViewModel::on_itemList_clicked(const QVariant& chatId)
+{
+    qDebug() << "ListViewModel::on_itemList_clicked: chatId=" << chatId;
+    auto chatIdStr = chatId.toString();
+    _chatManager->openChat(chatIdStr);
 }
 
 } // namespace MINIOICQ

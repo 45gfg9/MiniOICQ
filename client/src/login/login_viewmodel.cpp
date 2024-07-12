@@ -53,6 +53,23 @@ bool LoginViewModel::insertItem(const QVariant& userId,
     return false;
 }
 
+void LoginViewModel::setWsConnector(WebSocketConnector* wsConnector)
+{
+    // to WebSocketConnector
+    connect(this, &LoginViewModel::login, wsConnector,
+            &WebSocketConnector::on_login);
+    connect(this, &LoginViewModel::reg, wsConnector, &WebSocketConnector::on_reg);
+    // from WebSocketConnector
+    connect(wsConnector, &WebSocketConnector::loginSuccess, this,
+            &LoginViewModel::on_loginSuccess);
+    connect(wsConnector, &WebSocketConnector::loginFailed, this,
+            &LoginViewModel::on_loginFailed);
+    connect(wsConnector, &WebSocketConnector::regSuccess, this,
+            &LoginViewModel::on_regSuccess);
+    connect(wsConnector, &WebSocketConnector::regFailed, this,
+            &LoginViewModel::on_regFailed);
+}
+
 void LoginViewModel::on_login(QString userId, QString password)
 {
     qDebug() << "LoginViewModel::on_login";
@@ -110,9 +127,9 @@ void LoginViewModel::on_loginFailed(const QString& reason)
 void LoginViewModel::on_regSuccess(const UserInfo& info)
 {
     // TODO
-    qDebug() << "LoginViewModel::on_regSuccess; user_id: "
-             << info.userId();
+    qDebug() << "LoginViewModel::on_regSuccess; user_id: " << info.userId();
     emit regSuccess();
+    _loggedUserId = info.userId();
 }
 
 void LoginViewModel::on_regFailed(const QString& reason)

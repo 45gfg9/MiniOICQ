@@ -71,56 +71,35 @@ int main(int argc, char* argv[])
 
     // DB directory
     initDBPath(localDBPath);
-    QSqlDatabase localUserDB;
-    initDB(localUserFileName, localUserDB);
-    MINIOICQ::LoginModel loginModel(nullptr, localUserDB);
-
-    // Debug: print the table
-    qDebug() << "Table: " << loginModel.tableName();
-    qDebug() << "Columns: " << loginModel.columnCount();
-    for (int i = 0; i < loginModel.columnCount(); i++)
-    {
-        qDebug() << "Column " << i << ": "
-                 << loginModel.headerData(i, Qt::Horizontal, Qt::DisplayRole);
-    }
-    qDebug() << "Rows: " << loginModel.rowCount();
-    for (int i = 0; i < loginModel.rowCount(); i++)
-    {
-        for (int j = 0; j < loginModel.columnCount() - 1; j++)
-        {
-            qDebug() << "Row " << i << " Column " << j << ": "
-                     << loginModel.data(loginModel.index(i, j),
-                                        Qt::DisplayRole);
-        }
-    }
-
-    MINIOICQ::LoginViewModel loginViewModel;
-    loginViewModel.setSourceModel(&loginModel);
-
-    MINIOICQ::LoginView* loginView = new MINIOICQ::LoginView;
-    MINIOICQ::bindLoginView(loginView, &loginViewModel);
 
     WebSocketConnector wsConnector;
     wsConnector.connectSocket("ws://localhost:58765");
-    loginViewModel.connect(&loginViewModel, &MINIOICQ::LoginViewModel::login,
-                           &wsConnector, &WebSocketConnector::on_login);
-    loginViewModel.connect(&loginViewModel, &MINIOICQ::LoginViewModel::reg,
-                           &wsConnector, &WebSocketConnector::on_reg);
-    wsConnector.connect(&wsConnector, &WebSocketConnector::loginSuccess,
-                        &loginViewModel,
-                        &MINIOICQ::LoginViewModel::on_loginSuccess);
-    wsConnector.connect(&wsConnector, &WebSocketConnector::loginFailed,
-                        &loginViewModel,
-                        &MINIOICQ::LoginViewModel::on_loginFailed);
-    wsConnector.connect(&wsConnector, &WebSocketConnector::regSuccess,
-                        &loginViewModel,
-                        &MINIOICQ::LoginViewModel::on_regSuccess);
 
+    // Login
+    QSqlDatabase localUserDB;
+    initDB(localUserFileName, localUserDB);
+    MINIOICQ::LoginModel loginModel(nullptr, localUserDB);
+    MINIOICQ::LoginViewModel loginViewModel;
+    MINIOICQ::LoginView* loginView = new MINIOICQ::LoginView;
+    loginViewModel.setSourceModel(&loginModel);
+    loginViewModel.setWsConnector(&wsConnector);
+    MINIOICQ::bindLoginView(loginView, &loginViewModel);
+
+    // List
     MINIOICQ::ListView listView;
+    MINIOICQ::ListViewModel listViewModel;
+    MINIOICQ::ListModel listModel;
+    listViewModel.setSourceModel(&listModel);
+    listViewModel.setWsConnector(&wsConnector);
+    bindListView(&listView, &listViewModel);
+
+    // Main Logic
     if (loginView->exec() == QDialog::Accepted)
     {
         qDebug() << "Login success";
-        // listView->setUserId(loginViewModel.loggedUserId());
+        QSqlDatabase localChatDB;
+        initDB(loginViewModel.loggedUserId(), localChatDB);
+        listModel.setDatabase(localChatDB);
         listView.show();
     }
     else

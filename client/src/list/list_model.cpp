@@ -1,8 +1,8 @@
-#include <QSqlDatabase>
-#include <QSqlQuery>
 #include <QDebug>
-#include <QSqlError>
 #include <QFile>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 
 #include "list_model.h"
 
@@ -13,13 +13,15 @@ void ListModel::setDatabase(QSqlDatabase db)
 {
     // Execute MINIOICQ/sql/client.sql to create the tables
     auto tables = db.tables();
-    if (!tables.contains("users")) {
+    if (!tables.contains("users"))
+    {
         qDebug() << "Table users not found, creating tables";
 
         // Get the SQL script from file
         QString sql_path = "MINIOICQ/sql/client.sql";
         QFile file(sql_path);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
             qDebug() << "Open file failed: " << file.errorString();
             throw std::runtime_error("Open file failed");
         }
@@ -30,7 +32,8 @@ void ListModel::setDatabase(QSqlDatabase db)
         // Execute the SQL script
         QSqlQuery createTable(db);
         createTable.prepare(sql);
-        if (!createTable.exec()) {
+        if (!createTable.exec())
+        {
             qDebug() << "Create table failed: " << createTable.lastError();
             throw std::runtime_error("Create table failed");
         }
