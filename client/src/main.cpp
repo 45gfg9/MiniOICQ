@@ -79,9 +79,8 @@ int main(int argc, char* argv[])
     MINIOICQ::LoginViewModel loginViewModel;
     loginViewModel.setSourceModel(&loginModel);
 
-
-    MINIOICQ::LoginView loginView;
-    MINIOICQ::bindLoginView(&loginView, &loginViewModel);
+    MINIOICQ::LoginView* loginView = new MINIOICQ::LoginView;
+    MINIOICQ::bindLoginView(loginView, &loginViewModel);
 
     WebSocketConnector wsConnector;
     wsConnector.connectSocket("ws://localhost:58765");
@@ -96,11 +95,11 @@ int main(int argc, char* argv[])
                         &loginViewModel,
                         &MINIOICQ::LoginViewModel::on_registerSuccess);
 
-    if (loginView.exec() == QDialog::Accepted)
+    MINIOICQ::ListView listView;
+    if (loginView->exec() == QDialog::Accepted)
     {
         qDebug() << "Login success";
         // listView->setUserId(loginViewModel.loggedUserId());
-        MINIOICQ::ListView listView;
         listView.show();
     }
     else
