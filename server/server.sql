@@ -12,23 +12,10 @@ CREATE TABLE IF NOT EXISTS users (
 -- chats(cid, type, creation_time)
 CREATE TABLE IF NOT EXISTS chats (
     cid INTEGER PRIMARY KEY AUTOINCREMENT,
-    type TEXT NOT NULL CHECK (type IN ('private', 'group')),
-    creation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- contacts(cid, inviter_id, invitee_id)
-CREATE TABLE IF NOT EXISTS contacts (
-    cid INTEGER PRIMARY KEY REFERENCES chats(cid),
-    inviter_id INTEGER NOT NULL REFERENCES users(user_id),
-    invitee_id INTEGER NOT NULL REFERENCES users(user_id)
-);
-
--- groups(cid, group_name, avatar, owner_id)
-CREATE TABLE IF NOT EXISTS groups (
-    cid INTEGER PRIMARY KEY REFERENCES chats(cid),
-    group_name TEXT NOT NULL,
+    name TEXT NOT NULL,
     avatar BLOB,
     owner_id INTEGER NOT NULL REFERENCES users(user_id)
+    creation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- messages(cid, mid, content, sender_id, send_time)
