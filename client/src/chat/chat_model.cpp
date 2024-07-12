@@ -7,42 +7,53 @@ namespace MINIOICQ
 {
 
 ChatModel::ChatModel(QObject* parent, QSqlDatabase db, QVariant chatId)
-    : QSqlTableModel(parent, db), _chatId(chatId)
+    : QSqlQueryModel(parent), _chatId(chatId), _db(db), _viewName("chat_messages_view_" + chatId.toString())
 {
     qDebug() << "ChatModel::ChatModel()";
     Q_ASSERT(chatId.type() == QVariant::Type::Int);
-    auto tables = db.tables();
-    QString viewName = "chat_messages_view_" + chatId.toString();
-    if (!tables.contains(viewName))
+    qDebug() << "Create view " + _viewName;
+    QSqlQuery createView(_db);
+    createView.prepare("CREATE VIEW " + _viewName + " AS "
+                        "SELECT mid, message, send_time, sender_id, name, avatar"
+                        "FROM messages JOIN users ON messages.sender_id = users.userId"
+                        "WHERE cid = :chatId"
+                        "ORDER BY send_time ASC");
+    createView.bindValue(":chatId", chatId.toString());
+    if (!createView.exec())
     {
-        qDebug() << "View " + viewName + " not found, creating new view";
-        QSqlQuery createView(db);
-        createView.prepare("CREATE VIEW " + viewName + " AS "
-                           "SELECT mid, message, send_time, sender_id, name, avatar"
-                           "FROM messages JOIN users ON messages.sender_id = users.userId"
-                           "WHERE chatId = :chatId"
-                           "ORDER BY send_time ASC");
-        createView.bindValue(":chatId", chatId.toString());
-        if (!createView.exec())
-        {
-            qDebug() << "Create view failed: " << createView.lastError();
-            throw std::runtime_error("Create view failed");
-        }
+        qDebug() << "Create view failed: " << createView.lastError();
+        throw std::runtime_error("Create view failed");
     }
-    setTable(viewName);
-    select();
+    refresh();
 }
 
 ChatModel::~ChatModel() {
     qDebug() << "ChatModel::~ChatModel()";
-    qDebug() << "Drop view " + tableName();
-    QSqlQuery dropView(database());
-    dropView.prepare("DROP VIEW " + tableName());
+    qDebug() << "Drop view " + _viewName;
+    QSqlQuery dropView(_db);
+    dropView.prepare("DROP VIEW " + _viewName);
     if (!dropView.exec())
     {
         qDebug() << "Drop view failed: " << dropView.lastError();
         throw std::runtime_error("Drop view failed");
     }
+}
+
+void ChatModel::on_message_received()
+{
+    refresh();
+    emit message_received();
+}
+
+void ChatModel::refresh()
+{
+    setQuery("SELECT * FROM " + _viewName);
+    setHeaderData(0, Qt::Horizontal, "mid");
+    setHeaderData(1, Qt::Horizontal, "message");
+    setHeaderData(2, Qt::Horizontal, "send_time");
+    setHeaderData(3, Qt::Horizontal, "sender_id");
+    setHeaderData(4, Qt::Horizontal, "name");
+    setHeaderData(5, Qt::Horizontal, "avatar");
 }
 
 } // namespace MINIOICQ
