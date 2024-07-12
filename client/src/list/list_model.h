@@ -11,8 +11,7 @@ class ListModel : public QSqlQueryModel
     Q_OBJECT
 
 public:
-    ListModel(QObject* parent = nullptr, QSqlDatabase db);
-    ~ListModel();
+    void setDatabase(QSqlDatabase db);
 
 Q_SIGNALS:
     void message_received();

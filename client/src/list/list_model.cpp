@@ -9,8 +9,7 @@
 namespace MINIOICQ
 {
 
-ListModel::ListModel(QObject* parent, QSqlDatabase db)
-    : QSqlQueryModel(parent)
+void ListModel::setDatabase(QSqlDatabase db)
 {
     // Execute MINIOICQ/sql/client.sql to create the tables
     auto tables = db.tables();
@@ -38,8 +37,6 @@ ListModel::ListModel(QObject* parent, QSqlDatabase db)
     }
     refresh();
 }
-
-ListModel::~ListModel() {}
 
 void ListModel::on_message_received()
 {
