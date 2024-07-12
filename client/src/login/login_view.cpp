@@ -88,6 +88,7 @@ void LoginView::initUI()
     _password = new QtMaterialTextField(this);
     _login = new QtMaterialRaisedButton("Login");
     _register = new QtMaterialRaisedButton("Register");
+    _snackbar = new QtMaterialSnackbar(this);
     QLabel* title = new QLabel(this);
 
     // arrange
@@ -199,11 +200,25 @@ void LoginView::on_userId_itemSelected(QString userId)
 void LoginView::loginSuccess()
 {
     qDebug() << "LoginView::loginSuccess";
-    this->accept();
+    _snackbar->addMessage("Login Success");
+    accept();
 }
-void LoginView::loginFailed() { qDebug() << "LoginView::loginFailed"; }
-void LoginView::registerSuccess() { qDebug() << "LoginView::registerSuccess"; }
-void LoginView::registerFailed() { qDebug() << "LoginView::registerFailed"; }
+void LoginView::loginFailed(QString message)
+{
+    qDebug() << "LoginView::loginFailed";
+    _snackbar->addMessage("Login Failed");
+}
+void LoginView::registerSuccess()
+{
+    qDebug() << "LoginView::registerSuccess";
+    _snackbar->addMessage("Register Success");
+    accept();
+}
+void LoginView::registerFailed(QString message)
+{
+    qDebug() << "LoginView::registerFailed";
+    _snackbar->addMessage(message);
+}
 
 /**
  * @brief Override keyPressEvent from QDialog to prevent default button

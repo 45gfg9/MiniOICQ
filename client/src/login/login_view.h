@@ -37,6 +37,7 @@
 #include <qtmaterialavatar.h>
 #include <qtmaterialraisedbutton.h>
 #include <qtmaterialtextfield.h>
+#include <qtmaterialsnackbar.h>
 
 namespace MINIOICQ
 {
@@ -73,9 +74,9 @@ public slots:
 
     // LoginViewModel
     void loginSuccess();
-    void loginFailed();
+    void loginFailed(QString message);
     void registerSuccess();
-    void registerFailed();
+    void registerFailed(QString message);
 
 private slots:
 
@@ -101,6 +102,7 @@ private:
     QtMaterialTextField* _password;
     QtMaterialRaisedButton* _login;
     QtMaterialRaisedButton* _register;
+    QtMaterialSnackbar* _snackbar;
 };
 
 void bindLoginView(LoginView* view, QAbstractItemModel* model);
