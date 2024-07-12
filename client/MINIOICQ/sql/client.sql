@@ -34,7 +34,7 @@ CREATE TABLE groups (
 CREATE TABLE messages (
     cid INT NOT NULL REFERENCES chats(cid),
     mid INT NOT NULL,
-    message TEXT NOT NULL,
+    message BLOB NOT NULL,
     send_time TIMESTAMP NOT NULL,
     uid INT NOT NULL REFERENCES users(uid),
     PRIMARY KEY (cid, mid)
