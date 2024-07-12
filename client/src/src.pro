@@ -1,5 +1,5 @@
 TEMPLATE = app
-QT += core gui widgets sql websockets
+QT += core gui widgets sql websockets multimedia
 CONFIG += c++11 debug
 HEADERS = \
     login/login_view.h \
