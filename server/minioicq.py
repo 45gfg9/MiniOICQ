@@ -6,6 +6,9 @@ import pathlib
 import ssl
 import sqlite3
 import argon2
+from bidict import bidict
+from uuid import UUID
+from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 from websockets.server import serve, WebSocketServerProtocol
 
 
@@ -21,34 +24,69 @@ def initialize_db(conn: sqlite3.Connection):
 
 class ServerApp:
     def __init__(self, host: str, port: int, ssl_cert=None):
-        self.clients = set()
         self.routes = {}
         self.host = host
         self.port = port
         self.ssl_context = None
+
+        # authenticated online users, user_id => ws_id
+        self.users: bidict[str, UUID] = bidict()
+
+        # ws_id => message queue
+        self.clients: dict[UUID, asyncio.Queue] = {}
 
         if ssl_cert is not None:
             self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
             localhost_pem = pathlib.Path(__file__).with_name(ssl_cert)
             self.ssl_context.load_cert_chain(localhost_pem)
 
-    async def __default_handler(self, uuid, req: dict | bytes):
-        print(f'Default handler for {uuid}: {req}')
-        return {}
+
+    async def __default_handler(self, ws: WebSocketServerProtocol, req: dict | bytes):
+        print(f'Default handler for {ws.id}: {req}')
+        await ws.close()
+
+
+    async def __msg_waiter(self, ws: WebSocketServerProtocol, q: asyncio.Queue):
+        try:
+            while True:
+                msg = await q.get()
+                if msg is None:
+                    await ws.close()
+                    break
+                await ws.send(msgpack.packb(msg))
+        except ConnectionClosedOK:
+            print(f'Connection {ws.id} closed normally')
+        except ConnectionClosedError as e:
+            print(f'Connection {ws.id} closed with code {e.code}')
+        finally:
+            user_id = app.users.inverse.get(ws.id)
+            if user_id is not None:
+                print(f'Dropping user {user_id}')
+                del app.users[user_id]
+            await ws.close()
+
 
     async def __route(self, websocket: WebSocketServerProtocol):
+        self.clients[websocket.id] = q = asyncio.Queue()
+        waiter_task = asyncio.create_task(self.__msg_waiter(websocket, q))
+
         async for message in websocket:
             message = msgpack.unpackb(message)
-            action = message.get('action')
+            action = message['action']
             handler = self.routes.get(action, self.__default_handler)
-            if (response := await handler(websocket.id, message)) is not None:
-                await websocket.send(msgpack.packb(response))
+            if (response := await handler(websocket, message)) is not None:
+                await q.put(response)
+
+        waiter_task.cancel()
+        del self.clients[websocket.id]
+
 
     def route(self, route: str):
         def decorator(handler):
             self.routes[route] = handler
             return handler
         return decorator
+
 
     async def main(self):
         async with serve(self.__route, self.host, self.port, ssl=self.ssl_context):
@@ -59,15 +97,18 @@ app = ServerApp(HOST, PORT)
 
 
 @app.route('heartbeat')
-async def heartbeat(uuid, req: dict):
-    print(f'Heartbeat from {uuid}')
-    return {'action': 'heartbeat.ack'}
+async def heartbeat(ws: WebSocketServerProtocol, req: dict):
+    print(f'Heartbeat from {ws.id}')
+    if ws.id in app.users.values():
+        return {'action': 'heartbeat.ack'}
+    else:
+        print(f'Unauthenticated user {ws.id} sent heartbeat')
 
 
 @app.route('auth.login')
-async def auth_login(uuid, req: dict):
-    print(f'Login request from {uuid}: {req}')
-    user_id = 2 or req['user_id']
+async def auth_login(ws: WebSocketServerProtocol, req: dict):
+    print(f'Login request from {ws.id}: {req}')
+    user_id = req['user_id']
     password = req['password']
 
     if (row := conn.execute('SELECT nick, pwd_hash, avatar FROM users WHERE user_id = ?', (user_id,)).fetchone()) is None:
@@ -88,16 +129,21 @@ async def auth_login(uuid, req: dict):
         conn.execute('UPDATE users SET pwd_hash = ? WHERE user_id = ?', (new_pwd, user_id))
         conn.commit()
 
+    if user_id in app.users:
+        # close previous connection
+        await app.clients[app.users[user_id]].put(None)
+
+    app.users[user_id] = ws.id
     return {'action': 'auth.login.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
 
 
 @app.route('auth.register')
-async def auth_register(uuid, req: dict):
-    print(f'Register request from {uuid}: {req}')
+async def auth_register(ws: WebSocketServerProtocol, req: dict):
+    print(f'Register request from {ws.id}: {req}')
     user_name = req['user_name']
     password = req['password']
 
-    with open('default.jpg', 'rb') as f:
+    with open('default-user.jpg', 'rb') as f:
         avatar = f.read()
 
     ph = argon2.PasswordHasher()
@@ -105,7 +151,76 @@ async def auth_register(uuid, req: dict):
     user_id, = conn.execute('INSERT INTO users (nick, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING user_id', (user_name, pwd_hash, avatar)).fetchone()
     conn.commit()
 
+    app.users[user_id] = ws.id
     return {'action': 'auth.register.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
+
+
+@app.route('auth.logout')
+async def auth_logout(ws: WebSocketServerProtocol, req: dict):
+    print(f'Logout request from {ws.id}')
+    await ws.close()
+
+
+@app.route('message.send')
+async def message_send(ws: WebSocketServerProtocol, req: dict):
+    print(f'Message send request from {ws.id}: {req}')
+    if (sender_userid := app.users.inverse.get(ws.id)) is None:
+        print(f'Unauthenticated user {ws.id} tried to send message')
+        return
+
+    chat_id = req['message']['chat_id']
+    type = req['message']['type']
+    content = req['message']['content']
+
+    # check if chat exists
+    if conn.execute('SELECT 1 FROM chats WHERE cid = ?', (chat_id,)).fetchone() is None:
+        return {'action': 'message.send.fail', 'reason': 'Chat not found'}
+
+    # send to all users in chat
+    msg = {
+        'action': 'message.push',
+        'messages': [{
+            'chat_id': chat_id,
+            'sender_id': sender_userid,
+            'type': type,
+            'content': content,
+        }]
+    }
+    for user_id, in conn.execute('SELECT uid FROM joins WHERE cid = ?', (chat_id,)):
+        if (ws_id := app.users.get(user_id)) is not None:
+            await app.clients[ws_id].put(msg)
+    return msg
+
+
+@app.route('chat.create')
+async def chat_create(ws: WebSocketServerProtocol, req: dict):
+    print(f'Chat create request from {ws.id}: {req}')
+    if (user_id := app.users.inverse.get(ws.id)) is None:
+        print(f'Unauthenticated user {ws.id} tried to create chat')
+        return
+
+    chat_name = req.get('chat_name', 'Chat')
+    members = req['members']
+    with open('default-chat.jpg', 'rb') as f:
+        chat_avatar = f.read()
+    cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id) VALUES (?, ?, ?) RETURNING cid', (chat_name, chat_avatar, user_id)).fetchone()
+    conn.executemany('INSERT INTO joins (cid, uid) VALUES (?, ?)', [(cid, uid) for uid in members])
+
+    # select all members' user_id, nick, avatar
+    members = conn.execute('SELECT uid, nick, avatar FROM users WHERE uid IN (?)', (members,)).fetchall()
+    msg = {
+        'action': 'chat.spawn',
+        'members': [{
+            'user_id': uid,
+            'user_name': nick,
+            'avatar': avatar,
+        } for uid, nick, avatar in members],
+    }
+    members = req['members']
+    for user_id in members:
+        if (ws_id := app.users.get(user_id)) is not None:
+            await app.clients[ws_id].put(msg)
+    return msg
 
 
 with sqlite3.connect(DB_FILE) as conn:

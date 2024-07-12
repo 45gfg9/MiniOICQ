@@ -1,6 +1,6 @@
 # MiniOICQ Data Transfer Protocol
 
-Server should be listening to a port for WebSocket connections. Keys are Ed25519 keys. All messages are in MessagePack format.
+Server should be listening to a port for WebSocket connections. All messages are in MessagePack format.
 
 ## Register
 
@@ -70,7 +70,7 @@ The client should send a logout message to the server and wait for the server to
 }
 ```
 
-## Heartbeat
+<!-- ## Heartbeat
 
 Client should send a heartbeat message every 30 seconds:
 
@@ -86,20 +86,18 @@ Server should respond with:
 {
     "action": "heartbeat.ack",
 }
-```
+``` -->
 
 ## Send Message
 
 ```json
 {
     "action": "message.send",
-    "messages": [
-        {
-            "chat_id": "[recipient's chat_id]",
-            "type": "[type]",
-            "content": "[raw binary data]",
-        },
-    ]
+    "message": {
+        "chat_id": "[recipient's chat_id]",
+        "type": "[type]",
+        "content": "[raw binary data]",
+    },
 }
 ```
 
@@ -111,11 +109,12 @@ Server should respond with:
 - `video` (reserved)
 - `audio` (reserved)
 
-The server should respond with:
+The server should respond with a failure message if the chat does not exist:
 
 ```json
 {
-    "action": "message.send.ack",
+    "action": "message.send.fail",
+    "reason": "Chat not found",
 }
 ```
 
@@ -128,7 +127,8 @@ Whenever a message is received, the server should push it to the recipient:
     "action": "message.push",
     "messages": [
         {
-            "sender": "[sender's chat id]",
+            "chat_id": "[chat_id]",
+            "sender": "[sender's user id]",
             "type": "[type]",
             "content": "[content]",
         },
@@ -136,32 +136,33 @@ Whenever a message is received, the server should push it to the recipient:
 }
 ```
 
-And the recipient should respond with:
+<!-- And the recipient should respond with:
 
 ```json
 {
     "action": "message.push.ack",
 }
-```
+``` -->
 
-## Create Group
+## Create Chat
 
-The client should send a group creation request to the server:
+The client should send a chat creation request to the server:
 
 ```json
 {
-    "action": "group.invite",
+    "action": "chat.create",
     "members": [
         "[user_id]",
         "[user_id]",
     ],
 }
+```
 
 The server should send the following message to all members:
 
 ```json
 {
-    "action": "group.create",
+    "action": "chat.spawn",
     "members": [
         {
             "user_id": "[user_id]",
