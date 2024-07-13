@@ -73,6 +73,20 @@ void WebSocketConnector::onMessageReceived(const QString& message)
         QImage image;
         image.loadFromData(byteArray);
 
+        QJsonArray users = obj["users"].toArray();
+        QVector<MINIOICQ::UserInfo> userInfos;
+        for (const auto& user : users)
+        {
+            QJsonObject userObj = user.toObject();
+            QString id = userObj["user_id"].toString();
+            QString name = userObj["user_name"].toString();
+            QByteArray avatar =
+                QByteArray::fromBase64(userObj["avatar"].toString().toUtf8());
+            QImage img;
+            img.loadFromData(avatar);
+            userInfos.push_back(MINIOICQ::UserInfo(id, name, "", img));
+        }
+
         MINIOICQ::UserInfo info(user_id, user_name, password, image);
         if (action == "auth.login.success")
         {
@@ -82,6 +96,8 @@ void WebSocketConnector::onMessageReceived(const QString& message)
         {
             emit regSuccess(info);
         }
+
+        emit newUser(userInfos);
     }
     else if (action == "auth.login.fail")
     {
@@ -89,7 +105,47 @@ void WebSocketConnector::onMessageReceived(const QString& message)
         qDebug() << "Login failed: " << reason;
         emit loginFailed(reason);
     }
-    else
+    else if (action == "message.push")
+    {
+        QJsonArray messages = obj["messages"].toArray();
+        QVector<MINIOICQ::Message> msgs;
+        for (const auto& message : messages)
+        {
+            QJsonObject msgObj = message.toObject();
+            QString message_id = msgObj["message_id"].toString();
+            QString chat_id = msgObj["chat_id"].toString();
+            QString sender_id = msgObj["sender"].toString();
+            QDateTime time =
+                QDateTime::fromString(msgObj["time"].toString(), Qt::ISODate);
+            QString type = msgObj["type"].toString();
+            QByteArray content = msgObj["content"].toString().toUtf8();
+            msgs.push_back(MINIOICQ::Message(message_id, chat_id, sender_id,
+                                             type, content, time));
+        }
+
+        emit newMsg(msgs);
+    }
+    else if (action == "chat.spawn")
+    {
+        QString chat_id = obj["chat_id"].toString();
+        QString name = obj["name"].toString();
+        QByteArray byteArray =
+            QByteArray::fromBase64(obj["avatar"].toString().toUtf8());
+        QImage image;
+        image.loadFromData(byteArray);
+        QString owner_id = obj["owner_id"].toString();
+        QDateTime created =
+            QDateTime::fromString(obj["created"].toString(), Qt::ISODate);
+        QDateTime last_view = QDateTime::currentDateTime();
+        QJsonArray members = obj["members"].toArray();
+        (void)members;
+
+        MINIOICQ::ChatInfo chat(chat_id, name, image, owner_id, created,
+                                last_view);
+        QVector<MINIOICQ::ChatInfo> chats;
+        chats.push_back(chat);
+        emit newChat(chats);
+    }
     {
         qDebug() << "Unknown action" << action;
     }
@@ -105,11 +161,11 @@ void WebSocketConnector::on_login(const QString& userid,
         return;
     }
 
-    QJsonObject obj;
-    obj["action"] = "auth.login";
-    obj["user_id"] = userid;
-    obj["password"] = password;
-    QJsonDocument doc(obj);
+    QJsonDocument doc({
+        {"action", "auth.login"},
+        {"user_id", userid},
+        {"password", password},
+    });
     _socket->sendTextMessage(doc.toJson());
 }
 
@@ -122,11 +178,11 @@ void WebSocketConnector::on_reg(const QString& username,
         return;
     }
 
-    QJsonObject obj;
-    obj["action"] = "auth.register";
-    obj["user_name"] = username;
-    obj["password"] = password;
-    QJsonDocument doc(obj);
+    QJsonDocument doc({
+        {"action", "auth.register"},
+        {"user_name", username},
+        {"password", password},
+    });
     _socket->sendTextMessage(doc.toJson());
 }
 
@@ -134,5 +190,12 @@ void WebSocketConnector::on_view() { qDebug() << "View message"; }
 
 void WebSocketConnector::on_send(const MINIOICQ::Message& msg)
 {
-    qDebug() << "Sending message";
+    if (!_isConnected)
+    {
+        qDebug() << "Not connected to server";
+        return;
+    }
+
+    QJsonDocument doc({{"action", "message.send"}, {"message", msg.pack()}});
+    _socket->sendTextMessage(doc.toJson());
 }

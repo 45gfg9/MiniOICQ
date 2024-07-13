@@ -8,6 +8,7 @@ import ssl
 import sqlite3
 import argon2
 import random
+from datetime import datetime
 from bidict import bidict
 from uuid import UUID
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
@@ -198,15 +199,18 @@ async def message_send(ws: WebSocketServerProtocol, req: dict):
             'reason': 'Chat not found',
         }
 
+    now = datetime.now().isoformat()
     mid = random.randint(1, 2**31-1)
-    conn.execute('INSERT INTO messages (cid, mid, type, content, sender_id) VALUES (?, ?, ?, ?, ?)', (chat_id, mid, type, content, sender_userid))
+    conn.execute('INSERT INTO messages (cid, mid, type, content, sender_id, send_time) VALUES (?, ?, ?, ?, ?, ?)', (chat_id, mid, type, content, sender_userid, now))
 
     # send to all users in chat
     msg = {
         'action': 'message.push',
         'messages': [{
             'chat_id': chat_id,
+            'message_id': mid,
             'sender_id': sender_userid,
+            'time': now,
             'type': type,
             'content': content,
         }]
@@ -225,16 +229,18 @@ async def chat_create(ws: WebSocketServerProtocol, req: dict):
         return
 
     chat_name = req.get('chat_name', 'Chat')
-    members = req['members']
+    members: list = req['members']
     with open('default-chat.jpg', 'rb') as f:
         chat_avatar = f.read()
     cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id) VALUES (?, ?, ?) RETURNING cid', (chat_name, chat_avatar, user_id)).fetchone()
     conn.executemany('INSERT INTO joins (cid, uid) VALUES (?, ?)', [(cid, uid) for uid in members])
 
     # select all members' user_id, nick, avatar
-    members = conn.execute('SELECT uid, nick, avatar FROM users WHERE uid IN (?)', (members,)).fetchall()
+    members.append(user_id)
+    members = conn.execute(f'SELECT uid, nick, avatar FROM users WHERE uid IN ({",".join("?"*len(members))})', members).fetchall()
     msg = {
         'action': 'chat.spawn',
+        'chat_id': cid,
         'members': [{
             'user_id': uid,
             'user_name': nick,

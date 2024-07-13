@@ -103,6 +103,7 @@ Server should respond with:
         "chat_id": "[recipient's chat_id]",
         "type": "[type]",
         "content": "[data]",
+        "time": "[iso time string]",
     },
 }
 ```
@@ -134,7 +135,9 @@ Whenever a message is received, the server should push it to the recipient:
     "messages": [
         {
             "chat_id": "[chat_id]",
-            "sender": "[sender's user id]",
+            "message_id": "[message_id]",
+            "sender": "[sender's user_id]",
+            "time": "[iso time string]",
             "type": "[type]",
             "content": "[content]",
         },
@@ -169,6 +172,11 @@ The server should send the following message to all members:
 ```json
 {
     "action": "chat.spawn",
+    "chat_id": "[chat_id]",
+    "name": "[chat name]",
+    "avatar": "[avatar]",
+    "owner_id": "[owner_id]",
+    "created": "[iso time string]",
     "members": [
         {
             "user_id": "[user_id]",
@@ -210,6 +218,7 @@ Server should respond with:
 ```json
 {
     "action": "user.push",
+    "user_id": "[user_id]",
     "nick": "[nick]",
     "avatar": "[avatar]",
 }
@@ -236,6 +245,7 @@ Server should respond with:
     "messages": [
         {
             "sender": "[sender's id]",
+            "time": "[iso time string]",
             "type": "[type]",
             "content": "[content]",
         },
