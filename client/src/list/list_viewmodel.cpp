@@ -14,27 +14,27 @@ void ListViewModel::invalidate()
 {
     qDebug() << "ListViewModel::invalidate";
     QSortFilterProxyModel::invalidate();
-    // qDebug() << "ListViewModel Content: ";
-    // for (int i = 0; i < rowCount(); ++i)
-    // {
-    //     for (int j = 0; j < columnCount(); ++j)
-    //     {
-    //         qDebug() << data(index(i, j)).toString();
-    //     }
-    // }
+    qDebug() << "ListViewModel Content: ";
+    for (int i = 0; i < rowCount(); ++i)
+    {
+        for (int j = 0; j < columnCount(); ++j)
+        {
+            qDebug() << data(index(i, j));
+        }
+    }
     ListModel* model = qobject_cast<ListModel*>(sourceModel());
     _chatIdColumn = model->record().indexOf("cid");
     _chatNameColumn = model->record().indexOf("name");
     _chatAvatarColumn = model->record().indexOf("avatar");
-    // _chatLastMessageTypeColumn = model->record().indexOf("last_mtype");
+    _chatLastMessageTypeColumn = model->record().indexOf("last_mtype");
     _chatLastMessageColumn = model->record().indexOf("last_message");
     _chatLastMessageTimeColumn = model->record().indexOf("last_send_time");
     _chatUnreadMessageCountColumn = model->record().indexOf("un_read_count");
-    _chatManager = new ChatManager();
 
     qDebug() << "ListViewModel::setSourceModel: chatIdColumn=" << _chatIdColumn
              << ", chatNameColumn=" << _chatNameColumn
              << ", chatAvatarColumn=" << _chatAvatarColumn
+             << ", chatLastMessageTypeColumn=" << _chatLastMessageTypeColumn
              << ", chatLastMessageColumn=" << _chatLastMessageColumn
              << ", chatLastMessageTimeColumn=" << _chatLastMessageTimeColumn
              << ", chatUnreadMessageCountColumn="
@@ -45,11 +45,15 @@ void ListViewModel::invalidate()
 
 void ListViewModel::setSourceModel(ListModel* model)
 {
+    // connect with model
     QSortFilterProxyModel::setSourceModel(model);
     connect(model, &QAbstractItemModel::dataChanged, this,
             &ListViewModel::on_debug);
     connect(model, &QAbstractItemModel::dataChanged, this,
             &ListViewModel::invalidate);
+    connect(this, &ListViewModel::newMsg, model, &ListModel::on_newMsg);
+    // notify the view to update
+    invalidate();
 }
 
 QVariant ListViewModel::data(const QModelIndex& index, int /* role */) const
@@ -66,11 +70,25 @@ QVariant ListViewModel::data(const QModelIndex& index, int /* role */) const
 
 void ListViewModel::setWsConnector(WebSocketConnector* wsConnector)
 {
-    connect(wsConnector, &WebSocketConnector::newMsg, this,
+    _wsConnector = wsConnector;
+    connect(wsConnector, &WebSocketConnector::syncMsg, this,
             &ListViewModel::on_newMsg);
+    connect(wsConnector, &WebSocketConnector::syncChat, this,
+            &ListViewModel::on_newChat);
+    connect(wsConnector, &WebSocketConnector::syncUser, this,
+            &ListViewModel::on_newUser);
     connect(this, &ListViewModel::sync, wsConnector,
             &WebSocketConnector::on_sync);
     emit sync();
+
+    // connect with chatManager
+    auto model = qobject_cast<ListModel*>(sourceModel());
+    _chatManager = new ChatManager(_userId.toString(), model->database(),
+                                   _wsConnector, this);
+    connect(this, &ListViewModel::openChat, _chatManager,
+            &ChatManager::on_openChat);
+    connect(this, &ListViewModel::newMsg, _chatManager,
+            &ChatManager::on_newMsg);
 }
 
 QVector<MINIOICQ::UserInfo> ListViewModel::selectUser()
@@ -93,16 +111,17 @@ QVector<MINIOICQ::UserInfo> ListViewModel::selectUser()
     return users;
 }
 
-void ListViewModel::on_itemList_clicked(const QVariant& chatId)
+void ListViewModel::on_openChat(int cid)
 {
-    qDebug() << "ListViewModel::on_itemList_clicked: chatId=" << chatId;
-    auto chatIdStr = chatId.toString();
-    _chatManager->openChat(chatIdStr);
+    int chatId = data(index(cid, _chatIdColumn)).toInt();
+    emit openChat(chatId);
 }
 
-void ListViewModel::on_closeButton_clicked()
+void ListViewModel::on_closeAll()
 {
     qDebug() << "ListViewModel::on_closeButton_clicked";
+    _chatManager->closeAll();
+    // _wsConnector->close();
 }
 
 void ListViewModel::on_invite(const QVector<UserInfo>& users)
@@ -124,12 +143,23 @@ void ListViewModel::on_newMsg(QVector<MINIOICQ::Message>& messages)
         newMsg.setValue("mid", msg.msgId());
         newMsg.setValue("cid", msg.chatId());
         newMsg.setValue("uid", msg.sender());
-        newMsg.setValue("content", msg.content());
+        newMsg.setValue("mtype", msg.type());
+        newMsg.setValue("message", msg.content());
         newMsg.setValue("send_time", msg.time());
+        qDebug() << "newMsg: " << newMsg;
         if (!msgModel.insertRecord(-1, newMsg))
         {
             qDebug() << "insert message failed: " << msgModel.lastError();
         }
+    }
+
+    invalidate();
+    qDebug() << "ListViewModel::on_newMsg: emit newMsg" << rowCount();
+
+    // notify corresponding chat to update
+    for (auto& msg : messages)
+    {
+        emit newMsg(msg.chatId().toInt());
     }
 }
 
@@ -144,6 +174,9 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
     QSqlTableModel chatModel(nullptr, db);
     chatModel.setTable("chats");
     chatModel.select();
+    QSqlTableModel joinModel(nullptr, db);
+    joinModel.setTable("joins");
+    joinModel.select();
     auto it = chats.begin();
     for (int i = 0; i < chatModel.rowCount(); ++i)
     {
@@ -160,13 +193,22 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
             newChat.setValue("oid", it->ownerId());
             newChat.setValue("last_view", it->lastViewTime());
             newChat.setValue("start_time", it->startTime());
+            qDebug() << "newChat: " << newChat;
+            for (auto& memberId : it->members())
+            {
+                QSqlRecord newJoin = joinModel.record();
+                newJoin.setValue("cid", it->chatId());
+                newJoin.setValue("uid", memberId.toInt());
+                qDebug() << "newJoin: " << newJoin;
+                joinModel.insertRecord(-1, newJoin);
+            }
             if (!chatModel.insertRecord(-1, newChat))
             {
                 qDebug() << "insert chat failed: " << chatModel.lastError();
             }
             ++it;
         }
-        if (it->chatId() != cid)
+        if (it == chats.end() || it->chatId() != cid)
         {
             continue;
         }
@@ -178,6 +220,13 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
             nowChat.setValue("oid", it->ownerId());
             nowChat.setValue("last_view", it->lastViewTime());
             nowChat.setValue("start_time", it->startTime());
+            for (auto& memberId : it->members())
+            {
+                QSqlRecord newJoin = joinModel.record();
+                newJoin.setValue("cid", it->chatId());
+                newJoin.setValue("uid", memberId.toInt());
+                joinModel.insertRecord(-1, newJoin);
+            }
             if (!chatModel.setRecord(i, nowChat))
             {
                 qDebug() << "update chat failed: " << chatModel.lastError();
@@ -195,6 +244,16 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
         newChat.setValue("oid", it->ownerId());
         newChat.setValue("last_view", it->lastViewTime());
         newChat.setValue("start_time", it->startTime());
+        for (auto& memberId : it->members())
+        {
+            QSqlRecord newJoin = joinModel.record();
+            newJoin.setValue("cid", it->chatId());
+            newJoin.setValue("uid", memberId.toInt());
+            qDebug() << "memberId: " << memberId;
+            qDebug() << "newJoin: " << newJoin;
+            joinModel.insertRecord(-1, newJoin);
+        }
+        // qDebug() << "newChat: " << newChat;
         if (!chatModel.insertRecord(-1, newChat))
         {
             qDebug() << "insert chat failed: " << chatModel.lastError();
@@ -233,7 +292,7 @@ void ListViewModel::on_newUser(QVector<MINIOICQ::UserInfo>& users)
             }
             ++it;
         }
-        if (it->userId() != uid)
+        if (it == users.end() || it->userId() != uid)
         {
             continue;
         }

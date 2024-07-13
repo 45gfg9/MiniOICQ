@@ -1,7 +1,7 @@
-#include <QSqlDatabase>
-#include <QSqlQuery>
 #include <QDebug>
+#include <QSqlDatabase>
 #include <QSqlError>
+#include <QSqlQuery>
 
 #include "chat_model.h"
 
@@ -9,27 +9,34 @@ namespace MINIOICQ
 {
 
 ChatModel::ChatModel(QSqlDatabase db, QVariant chatId, QObject* parent)
-    : QSqlQueryModel(parent), _chatId(chatId), _db(db), _viewName("chat_messages_view_" + chatId.toString())
+    : QSqlQueryModel(parent), _chatId(chatId), _db(db),
+      _viewName("chat_messages_view_" + chatId.value<QString>())
 {
     qDebug() << "ChatModel::ChatModel()";
     Q_ASSERT(chatId.type() == QVariant::Type::Int);
     qDebug() << "Create view " + _viewName;
     QSqlQuery createView(_db);
-    createView.prepare("CREATE VIEW " + _viewName + " AS "
-                        "SELECT mid, mtype, message, send_time, sender_id, name, avatar"
-                        "FROM messages JOIN users ON messages.sender_id = users.userId"
-                        "WHERE cid = :chatId"
+    // clang-format off
+    createView.prepare("CREATE VIEW IF NOT EXISTS " + _viewName + " AS "
+                        "SELECT mid, mtype, message, send_time, users.uid AS uid, name, avatar "
+                        "FROM messages JOIN users ON messages.uid = users.uid "
+                        "WHERE cid = " + chatId.toString() + " "
+                        // "WHERE cid = (?) " 
                         "ORDER BY send_time ASC");
-    createView.bindValue(":chatId", chatId.toString());
+    // clang-format on
+    // createView.bindValue(":chatId", chatId.toInt());
+    // createView.bindValue(0, chatId.toString());
     if (!createView.exec())
     {
+        qDebug() << "SQL query: " << createView.lastQuery();
         qDebug() << "Create view failed: " << createView.lastError();
         throw std::runtime_error("Create view failed");
     }
     refresh();
 }
 
-ChatModel::~ChatModel() {
+ChatModel::~ChatModel()
+{
     qDebug() << "ChatModel::~ChatModel()";
     qDebug() << "Drop view " + _viewName;
     QSqlQuery dropView(_db);
@@ -41,10 +48,14 @@ ChatModel::~ChatModel() {
     }
 }
 
-void ChatModel::on_message_received()
+void ChatModel::on_newMsg(int cid)
 {
+    qDebug() << "ChatModel::on_newMsg()";
+    if (cid != _chatId.toInt())
+        return;
+    qDebug() << "ChatModel::on_newMsg() emit newMsg()";
     refresh();
-    emit message_received();
+    emit newMsg();
 }
 
 void ChatModel::refresh()

@@ -18,7 +18,7 @@ Q_SIGNALS:
     void message_received();
 
 public slots:
-    void on_message_received();
+    void on_newMsg();
 
 private:
     void refresh();

@@ -15,7 +15,7 @@ class ChatViewModel : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    ChatViewModel(QVariant chatId, QObject* parent = nullptr);
+    ChatViewModel(QVariant userId, QVariant chatId, QObject* parent = nullptr);
     ~ChatViewModel();
 
     int midColumn() const { return _midColumn; }
@@ -31,18 +31,22 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     void setWsConnector(WebSocketConnector* wsConnector);
 
-    // from ListViewModel
-    void update();
+    // from ChatModel
+    void on_newMsg();
 
 public slots:
 
     // from ChatView
-    void on_send(const Message& msg);
+    void on_send(Message msg);
+    void on_closeChat();
 
 Q_SIGNALS:
 
     // to WebSocketConnector
     void send(const Message& msg);
+
+    // to ChatManager
+    void closeChat(int chatId);
 
 private:
 // mid, message, send_time, sender_id, name, avatar
@@ -54,6 +58,7 @@ private:
     int _nameColumn = -1;     // VARCHAR
     int _avatarColumn = -1;   // BLOB
     QVariant _chatId;
+    QVariant _userId;
 };
 
 } // namespace MINIOICQ

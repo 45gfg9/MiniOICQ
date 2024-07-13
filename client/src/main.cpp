@@ -117,9 +117,6 @@ int main(int argc, char* argv[])
     MINIOICQ::ListModel listModel;
     bindListView(&listView, &listViewModel);
 
-    MINIOICQ::ChatView chatView;
-    chatView.show();
-
     // Main Logic
     if (loginView->exec() == QDialog::Accepted)
     {
@@ -128,6 +125,7 @@ int main(int argc, char* argv[])
         initDB("client_db_" + loginViewModel.loggedUserId() + ".db", localChatDB);
         listModel.setDatabase(localChatDB);
         listViewModel.setSourceModel(&listModel);
+        listViewModel.setUserId(loginViewModel.loggedUserId());
         listViewModel.setWsConnector(&wsConnector);
         listView.show();
     }

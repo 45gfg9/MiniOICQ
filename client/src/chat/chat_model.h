@@ -17,10 +17,10 @@ public:
     QVariant chatId() const { return _chatId; }
 
 Q_SIGNALS:
-    void message_received();
+    void newMsg();
 
 public slots:
-    void on_message_received();
+    void on_newMsg(int cid);
 
 private:
     void refresh();

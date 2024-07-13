@@ -34,7 +34,6 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE TABLE IF NOT EXISTS joins (
     cid INT NOT NULL REFERENCES chats(cid),
     uid INT NOT NULL REFERENCES users(uid),
-    join_time TIMESTAMP NOT NULL,
     PRIMARY KEY (cid, uid)
 );
 

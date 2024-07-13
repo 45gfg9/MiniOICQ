@@ -35,10 +35,11 @@ void ChatDelegate::setEditorData(QWidget* editor,
         // use QFontMetrics to calculate height
         // https://stackoverflow.com/questions/37671839/how-to-use-qfontmetrics-boundingrect-to-measure-size-of-multilne-message/37674690#37674690
         text->setStyleSheet("font-size: 14px;");
-        auto height = QFontMetrics(text->font())
+        auto height = QFontMetrics(QFont(text->font().family(), 10.5))
                           .boundingRect(0, 0, ChatViewItem::MessageWidth, 0,
                                         Qt::TextWordWrap, content)
                           .height();
+        qDebug() << "wrap height" << height;
         text->setFixedSize(ChatViewItem::MessageWidth,
                            2 * ChatViewItem::MessageVMargin + height);
         text->setWordWrap(true);
@@ -272,7 +273,7 @@ void ChatView::initConnect() {
 
 void ChatView::on_dataChanged()
 {
-    qDebug() << "ChatView::update";
+    qDebug() << "ChatView::on_dataChanged()";
     if (_mappers.empty())
     {
         qDebug() << "ChatView::update: mappers is empty";
@@ -332,10 +333,21 @@ void ChatView::on_dataChanged()
         mapper->setCurrentIndex(i);
         _mappers.push_back(mapper);
     }
+
+    // set this height
+    int height = 0;
+    for (int i = 0; i < layout->count(); i++)
+    {
+        height += layout->itemAt(i)->widget()->height();
+    }
+    qDebug() << "ChatView::on_dataChanged: layout height"
+             << height;
+    _chatList->setFixedHeight(height);
 }
 
 void ChatView::setModel(QAbstractItemModel* model)
 {
+    qDebug() << "ChatView::setModel" << model->rowCount();
     if (!_mappers.empty())
     {
         qDebug() << "ChatView::setModel: mappers is not empty";
@@ -348,12 +360,13 @@ void ChatView::setModel(QAbstractItemModel* model)
     // connect
     connect(chatViewModel, &ChatViewModel::dataChanged, this, &ChatView::on_dataChanged);
     connect(this, &ChatView::send, chatViewModel, &ChatViewModel::on_send);
+    connect(this, &ChatView::closeChat, chatViewModel, &ChatViewModel::on_closeChat);
 
     // bind
     auto initMapper = new QDataWidgetMapper(this);
     initMapper->setModel(model);
     _mappers.push_back(initMapper);
-    update();
+    on_dataChanged();
 }
 
 void ChatView::on_sendButton_clicked() {
@@ -365,6 +378,7 @@ void ChatView::on_sendButton_clicked() {
 
 void ChatView::on_closeButton_clicked() {
     qDebug() << "ChatView::on_closeButton_clicked";
+    close();
     emit closeChat();
 }
 

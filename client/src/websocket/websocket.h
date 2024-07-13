@@ -29,9 +29,11 @@ public slots:
     // from LoginViewModel
     void on_login(const QString& userid, const QString& password);
     void on_reg(const QString& username, const QString& password);
-
+    
+    // from ListViewModel
     void on_sync();
 
+    // from ChatViewModel
     void on_view();
     void on_send(const MINIOICQ::Message& msg);
 
@@ -45,8 +47,8 @@ signals:
     void regFailed(const QString& reason);
 
     // to ListViewModel
-    void newMsg(QVector<MINIOICQ::Message>& messages);
-    void newChat(QVector<MINIOICQ::ChatInfo>& chat);
+    void syncMsg(QVector<MINIOICQ::Message>& messages);
+    void syncChat(QVector<MINIOICQ::ChatInfo>& chat);
     void syncUser(QVector<MINIOICQ::UserInfo>& users);
 
 private:

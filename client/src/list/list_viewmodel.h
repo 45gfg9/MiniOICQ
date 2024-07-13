@@ -21,12 +21,15 @@ public:
     int chatIdColumn() const { return _chatIdColumn; }
     int chatNameColumn() const { return _chatNameColumn; }
     int chatAvatarColumn() const { return _chatAvatarColumn; }
+    int chatLastMessageTypeColumn() const { return _chatLastMessageTypeColumn; }
     int chatLastMessageColumn() const { return _chatLastMessageColumn; }
     int chatLastMessageTimeColumn() const { return _chatLastMessageTimeColumn; }
     int chatUnreadMessageCountColumn() const
     {
         return _chatUnreadMessageCountColumn;
     }
+    QVariant userId() const { return _userId; }
+    void setUserId(const QVariant& userId) { _userId = userId; }
 
     void setSourceModel(ListModel* model);
     QVariant data(const QModelIndex& index,
@@ -34,12 +37,18 @@ public:
 
     void setWsConnector(WebSocketConnector* wsConnector);
 
-    QVector<MINIOICQ::UserInfo> selectUser();
+    QVector<UserInfo> selectUser();
 
 Q_SIGNALS:
     // to WebSocketConnector
     void sync();
     void createChat(QVector<UserInfo> users);
+
+    // to ChatManager
+    void openChat(int cid);
+
+    // to ChatViewModel
+    void newMsg(int cid);
 
 public slots:
 
@@ -49,8 +58,8 @@ public slots:
     
 
     // from ListView
-    void on_itemList_clicked(const QVariant& chatId);
-    void on_closeButton_clicked();
+    void on_openChat(int cid);
+    void on_closeAll();
     void on_invite(const QVector<UserInfo>& users);
 
     // from WebSocketConnector
@@ -62,11 +71,14 @@ private:
     int _chatIdColumn = -1;
     int _chatNameColumn = -1;
     int _chatAvatarColumn = -1;
+    int _chatLastMessageTypeColumn = -1;
     int _chatLastMessageColumn = -1;
     int _chatLastMessageTimeColumn = -1;
     int _chatUnreadMessageCountColumn = -1;
 
+    QVariant _userId;
     ChatManager* _chatManager = nullptr;
+    WebSocketConnector * _wsConnector = nullptr;
 };
 
 } // namespace MINIOICQ

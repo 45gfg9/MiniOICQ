@@ -56,7 +56,9 @@ class ServerApp:
                 if msg is None:
                     await ws.close()
                     break
-                await ws.send(json.dumps(msg))
+                s = json.dumps(msg)
+                print(s)
+                await ws.send(s)
         except ConnectionClosedOK:
             print(f'Connection {ws.id} closed normally')
         except ConnectionClosedError as e:
@@ -112,7 +114,7 @@ async def heartbeat(ws: WebSocketServerProtocol, req: dict):
 @app.route('auth.login')
 async def auth_login(ws: WebSocketServerProtocol, req: dict):
     print(f'Login request from {ws.id}: {req}')
-    user_id = req['user_id']
+    user_id = int(req['user_id'])
     password = req['password']
 
     if (row := conn.execute('SELECT nick, pwd_hash, avatar FROM users WHERE uid = ?', (user_id,)).fetchone()) is None:
@@ -142,7 +144,7 @@ async def auth_login(ws: WebSocketServerProtocol, req: dict):
     app.users[user_id] = ws.id
     return {
         'action': 'auth.login.success',
-        'user_id': str(user_id),
+        'user_id': user_id,
         'user_name': user_name,
         'password': password,
         'avatar': avatar,
@@ -166,7 +168,7 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
     app.users[user_id] = ws.id
     return {
         'action': 'auth.register.success',
-        'user_id': str(user_id),
+        'user_id': user_id,
         'user_name': user_name,
         'password': password,
         'avatar': base64.b64encode(avatar).decode(),
@@ -186,7 +188,7 @@ async def message_send(ws: WebSocketServerProtocol, req: dict):
         print(f'Unauthenticated user {ws.id} tried to send message')
         return
 
-    chat_id = req['message']['chat_id']
+    chat_id = int(req['message']['chat_id'])
     type = req['message']['type']
     content = req['message']['content']
 
@@ -227,10 +229,11 @@ async def chat_create(ws: WebSocketServerProtocol, req: dict):
         return
 
     chat_name = req.get('chat_name', 'Chat')
+    now = datetime.now().isoformat()
     members: list = req['members']
     with open('default-chat.jpg', 'rb') as f:
         chat_avatar = f.read()
-    cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id) VALUES (?, ?, ?) RETURNING cid', (chat_name, chat_avatar, user_id)).fetchone()
+    cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id, creation_time) VALUES (?, ?, ?, ?) RETURNING cid', (chat_name, chat_avatar, user_id, now)).fetchone()
     conn.executemany('INSERT INTO joins (cid, uid) VALUES (?, ?)', [(cid, uid) for uid in members])
 
     # select all members' user_id, nick, avatar
@@ -239,6 +242,9 @@ async def chat_create(ws: WebSocketServerProtocol, req: dict):
     msg = {
         'action': 'chat.spawn',
         'chat_id': cid,
+        'chat_name': chat_name,
+        'avatar': base64.b64encode(chat_avatar).decode(),
+        'owner_id': user_id,
         'members': [{
             'user_id': uid,
             'user_name': nick,
@@ -279,8 +285,30 @@ async def user_sync(ws: WebSocketServerProtocol, req: dict):
         'users': [{
             'user_id': user_id,
             'user_name': user_name,
-            'avatar': base64.b64encode(avatar).decode(),
-        } for user_id, user_name, avatar in conn.execute('SELECT uid, nick, avatar FROM users').fetchall()]
+            'avatar': base64.b64encode(b'' if avatar is None else avatar).decode(),
+        } for user_id, user_name, avatar in conn.execute('SELECT uid, nick, avatar FROM users').fetchall()],
+        'chats': [{
+            'chat_id': chat_id,
+            'chat_name': chat_name,
+            'avatar': base64.b64encode(b'' if avatar is None else avatar).decode(),
+            'owner_id': owner_id,
+            'created': created,
+            'members': [
+                {'user_id': user_id, 'user_name': user_name, 'avatar': base64.b64encode(b'' if avatar is None else avatar).decode()}
+                for user_id, user_name, avatar in conn.execute(
+                    'SELECT uid, nick, avatar FROM users WHERE uid IN (SELECT uid FROM joins WHERE cid = ?)',
+                    (chat_id,)
+                ).fetchall()
+            ]
+        } for chat_id, chat_name, avatar, owner_id, created in conn.execute('SELECT cid, name, avatar, owner_id, creation_time FROM chats').fetchall()],
+        'messages': [{
+            'chat_id': chat_id,
+            'message_id': mid,
+            'sender_id': sender_id,
+            'time': send_time,
+            'type': type,
+            'content': content,
+        } for chat_id, mid, sender_id, send_time, type, content in conn.execute('SELECT cid, mid, sender_id, send_time, type, content FROM messages').fetchall()],
     }
 
 

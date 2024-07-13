@@ -115,6 +115,7 @@ void LoginViewModel::on_loginSuccess(const UserInfo& info)
 
     // emit signal to LoginView to show main window
     emit loginSuccess();
+    qDebug() << "LoginViewModel::on_loginSuccess; user_id: " << info.userId();
     _loggedUserId = info.userId();
 }
 
@@ -126,8 +127,15 @@ void LoginViewModel::on_loginFailed(const QString& reason)
 
 void LoginViewModel::on_regSuccess(const UserInfo& info)
 {
-    // TODO
     qDebug() << "LoginViewModel::on_regSuccess; user_id: " << info.userId();
+    // update user data
+    if (!insertItem(info.userId(), info.username(), info.password(),
+                    info.avatar()))
+    {
+        qDebug() << "LoginViewModel::on_regSuccess: failed to update user data "
+                    "in model";
+        throw std::runtime_error("Update user data failed");
+    }
     emit regSuccess();
     _loggedUserId = info.userId();
 }

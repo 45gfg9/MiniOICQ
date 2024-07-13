@@ -39,6 +39,8 @@ public:
     QByteArray content() const { return _content; }
     QImage avatar() const { return _avatar; }
 
+    void setSender(QString sender) { _sender = sender; }
+    void setChatId(QString chatId) { _chatId = chatId; }
     void setAvatar(QImage avatar) { _avatar = avatar; }
 
 private:

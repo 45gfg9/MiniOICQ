@@ -1,9 +1,11 @@
 #include <QDate>
 #include <QDebug>
+#include <QDialog>
 #include <QHBoxLayout>
 #include <QTime>
 #include <QVBoxLayout>
 
+#include "qtmaterialcheckbox.h"
 #include "qtmaterialiconbutton.h"
 #include "qtmaterialscrollbar.h"
 
@@ -14,10 +16,40 @@
 namespace MINIOICQ
 {
 
-// void ListView::on_debug()
-// {
-//     qDebug() << "ListView::on_debug";
-// }
+InviteItem::InviteItem(QWidget* parent) : QWidget(parent) { initUi(); }
+
+void InviteItem::setUser(const UserInfo& user)
+{
+    _name->setText(user.username());
+    _avatar->setImage(user.avatar());
+}
+
+void InviteItem::initUi()
+{
+    _avatar = new QtMaterialAvatar(this);
+    _name = new QLabel(this);
+    _checkBox = new QtMaterialCheckBox(this);
+
+    // arrange
+    auto layout = new QHBoxLayout(this);
+    layout->addWidget(_checkBox);
+    layout->addWidget(_avatar);
+    layout->addWidget(_name);
+
+    // style
+    // // item
+    // this->setPalette(themePalette);
+    // // layout: border 16, space 8
+    // layout->setContentsMargins(16, 16, 16, 16);
+    // layout->setSpacing(8);
+    // // avatar: 40 * 40
+    // _avatar->setSize(40);
+    // // name: height 20, font 16
+    // _name->setStyleSheet("font-size: 16px;");
+    // _name->setFixedSize(kListViewWidth - (16 * 2 + 40 + 8), 20);
+    // // checkBox: 20 * 20
+    // _checkBox->setFixedSize(20, 20);
+}
 
 static int constexpr kListViewWidth = 252;
 static int constexpr kListViewItemHeight = 72;
@@ -111,6 +143,8 @@ void ListView::initUi()
     _itemList = new QWidget(_scrollArea);
     _closeButton =
         new QtMaterialFloatingActionButton(QIcon(":/close.svg"), this);
+    _inviteButton =
+        new QtMaterialFloatingActionButton(QIcon(":/invite.svg"), this);
 
     // arrange
     auto layout = new QVBoxLayout(this);
@@ -121,11 +155,10 @@ void ListView::initUi()
 
     // style
     // ListView
-    this->setFixedSize(kListViewWidth + 2,
-                       kListViewHeight); // can't understand this border 1
+    this->setFixedSize(kListViewWidth, kListViewHeight);
     this->layout()->setSpacing(0);
     this->layout()->setContentsMargins(zeroMargins);
-    // this->setAttribute(Qt::WA_DeleteOnClose);
+    this->setAttribute(Qt::WA_DeleteOnClose);
     // this->setWindowFlag(Qt::FramelessWindowHint);
     // appBar
     QLabel* appBarTitle = new QLabel("Inbox", _appBar);
@@ -148,32 +181,41 @@ void ListView::initUi()
     itemListLayout->setContentsMargins(zeroMargins);
     // clostButton
     _closeButton->setOffset(16, 16);
-    // _closeButton->setMini(true);
-
-    // debug: fill default data
-    // for(int i = 0; i < 11; i++)
-    // {
-    //     itemListLayout->addWidget(new ListViewItem(_itemList));
-    // }
+    _closeButton->setMini(true);
+    // inviteButton
+    _inviteButton->setOffset(16, 48);
+    _inviteButton->setMini(true);
 }
 
 void ListView::initConnect()
 {
     connect(_closeButton, &QtMaterialFloatingActionButton::clicked, this,
-            &ListView::close);
+            &ListView::closeAll);
+    connect(_inviteButton, &QtMaterialFloatingActionButton::clicked, this,
+            &ListView::on_invite);
 }
 
-void ListView::on_dataChanged(QModelIndex /* topLeft */,
-                              QModelIndex /* bottomRight */,
-                              QVector<int> /* roles */)
+void ListView::on_invite()
 {
-    qDebug() << "ListView::on_dataChanged";
-    if (_mappers.empty())
-    {
-        qDebug() << "ListView::on_dataChanged: mappers is empty";
-        return;
-    }
-    auto* model = qobject_cast<ListViewModel*>(_mappers[0]->model());
+    // display a dialog to let user select contacts
+    auto model = qobject_cast<ListViewModel*>(_mappers[0]->model());
+    QVector<UserInfo> users = model->selectUser();
+    QDialog dialog(this);
+    // QtMaterialCheckBox
+
+    emit invite({});
+}
+
+void ListView::on_close()
+{
+    qDebug() << "ListView::on_close";
+    emit closeAll();
+    close();
+}
+
+void ListView::on_dataChanged()
+{
+    auto* model = qobject_cast<ListViewModel*>(_model);
     // qDebug() << "ListView::on_dataChanged: " << model;
     // clear mapper
     for (auto* mapper : _mappers)
@@ -187,6 +229,8 @@ void ListView::on_dataChanged(QModelIndex /* topLeft */,
     // adjust item count
     auto modelItemNum = model->rowCount();
     auto layoutItemNum = layout->count();
+    qDebug() << "ListView::on_dataChanged: modelItemNum" << modelItemNum
+             << "layoutItemNum" << layoutItemNum;
     if (modelItemNum > layoutItemNum)
     {
         for (int i = layoutItemNum; i < modelItemNum; i++)
@@ -215,31 +259,84 @@ void ListView::on_dataChanged(QModelIndex /* topLeft */,
                            "text");
         mapper->addMapping(item->_lastMsg, model->chatLastMessageColumn(),
                            "text");
-        mapper->addMapping(item->_unRead, model->chatUnreadMessageCountColumn(),
-                           "text");
         mapper->setCurrentIndex(i);
         _mappers.push_back(mapper);
-        item->setUnreadCount(item->_unRead, model->chatUnreadMessageCount(i));
-        item->_avatar->setImage(QImage::loadFromData(
+        item->setUnreadCount(
+            item->_unRead,
+            model->data(model->index(i, model->chatUnreadMessageCountColumn()))
+                .toInt());
+        QImage image;
+        image.loadFromData(
             model->data(model->index(i, model->chatAvatarColumn()))
-                .toByteArray()));
+                .toByteArray());
+        item->_avatar->setImage(image);
     }
 
     // adjust height
-    this->_itemList->setFixedHeight(
-        this->_itemList->layout()->minimumSize().height());
+    this->_itemList->setFixedHeight(kListViewItemHeight * modelItemNum);
+    qDebug() << "ListView::on_dataChanged: height"
+             << kListViewHeight * modelItemNum;
 }
 
 void ListView::setModel(QAbstractItemModel* model)
 {
+    _model = model;
+    auto listViewModel = qobject_cast<ListViewModel*>(model);
     // connect
-    connect(model, &QAbstractItemModel::dataChanged, this,
+    connect(listViewModel, &QAbstractItemModel::dataChanged, this,
             &ListView::on_dataChanged);
+    connect(listViewModel, &QAbstractProxyModel::sourceModelChanged, this,
+            &ListView::on_dataChanged);
+    connect(this, &ListView::openChat, listViewModel,
+            &ListViewModel::on_openChat);
+
     // qDebug() << "ListView::setModel: " << model;
     auto mapper = new QDataWidgetMapper(this);
     mapper->setModel(model);
     _mappers.push_back(mapper);
     // on_dataChanged({}, {}, {});
+}
+
+void ListView::mouseReleaseEvent(QMouseEvent* event)
+{
+    QWidget* widget = childAt(event->pos());
+    if (widget)
+        qDebug() << "ListView::mouseReleaseEvent: " << widget;
+    while (widget)
+    {
+        // break when widget is ListViewItem
+        if (qobject_cast<ListViewItem*>(widget))
+        {
+            qDebug() << "ListView::mouseReleaseEvent: " << widget;
+            break;
+        }
+        widget = widget->parentWidget();
+    }
+    if (!widget)
+    {
+        QDebug(QtWarningMsg) << "ListView::mouseReleaseEvent: no widget";
+        return;
+    }
+    auto index = _itemList->layout()->indexOf(widget);
+    qDebug() << "ListView::mouseReleaseEvent: " << index;
+    emit openChat(index);
+    // print parent widget
+    // if (widget)
+    // {
+    //     const QLabel* const label = qobject_cast<QLabel*>(widget);
+    //     if (label)
+    //     {
+    //         qDebug() << "label" << label->text();
+    //     }
+    //     const int index = centralWidget()->layout()->indexOf(widget);
+    //     qDebug() << "layout index" << index;
+    //     if (index >= 0)
+    //     {
+    //         const QLayoutItem* const item =
+    //             centralWidget()->layout()->itemAt(index);
+    //         qDebug() << "layout item" << item;
+    //     }
+    // }
 }
 
 void bindListView(ListView* view, QAbstractItemModel* model)

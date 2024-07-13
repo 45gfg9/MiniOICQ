@@ -43,7 +43,6 @@ void ListModel::setDatabase(QSqlDatabase db)
         initdb.exec("CREATE TABLE IF NOT EXISTS joins ("
                         "cid INT NOT NULL,"
                         "uid INT NOT NULL,"
-                        "join_time TIMESTAMP NOT NULL,"
                         "PRIMARY KEY (cid, uid)"
                         ");");
         initdb.exec("CREATE VIEW IF NOT EXISTS chat_list_view AS "
@@ -75,10 +74,9 @@ void ListModel::setDatabase(QSqlDatabase db)
     refresh();
 }
 
-void ListModel::on_message_received()
+void ListModel::on_newMsg()
 {
     refresh();
-    emit message_received();
 }
 
 void ListModel::refresh()

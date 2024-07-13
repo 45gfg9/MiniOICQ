@@ -104,7 +104,7 @@ private slots:
 Q_SIGNALS:
 
     // to ChatViewModel
-    void send(const Message& message);
+    void send(Message& message);
     void closeChat();
 
 private:
