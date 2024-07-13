@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
     // DB directory
     initDBPath(localDBPath);
 
+
     WebSocketConnector wsConnector;
     wsConnector.connectSocket("ws://localhost:58765");
 
@@ -91,6 +92,25 @@ int main(int argc, char* argv[])
     loginViewModel.setSourceModel(&loginModel);
     loginViewModel.setWsConnector(&wsConnector);
     MINIOICQ::bindLoginView(loginView, &loginViewModel);
+
+    // Debug: print the table
+    // qDebug() << "Table: " << loginModel.tableName();
+    // qDebug() << "Columns: " << loginModel.columnCount();
+    // for (int i = 0; i < loginModel.columnCount(); i++)
+    // {
+    //     qDebug() << "Column " << i << ": "
+    //              << loginModel.headerData(i, Qt::Horizontal, Qt::DisplayRole);
+    // }
+    // qDebug() << "Rows: " << loginModel.rowCount();
+    // for (int i = 0; i < loginModel.rowCount(); i++)
+    // {
+    //     for (int j = 0; j < loginModel.columnCount(); j++)
+    //     {
+    //         qDebug() << "Row " << i << " Column " << j << ": "
+    //                  << loginModel.data(loginModel.index(i, j),
+    //                                     Qt::DisplayRole);
+    //     }
+    // }
 
     MINIOICQ::ListView listView;
     MINIOICQ::ListViewModel listViewModel;

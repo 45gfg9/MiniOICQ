@@ -1,5 +1,7 @@
 #include "chat_viewmodel.h"
 #include <QSqlRecord>
+#include <QImage>
+#include <QDebug>
 
 namespace MINIOICQ
 {
@@ -28,7 +30,19 @@ QVariant ChatViewModel::data(const QModelIndex& index, int role) const
 {
     if (role == Qt::DisplayRole)
     {
-        return QSortFilterProxyModel::data(index, role);
+        auto ret = QSortFilterProxyModel::data(index, role);
+        if(index.column() == avatarColumn())
+        {
+            // convert QByteArray to QImage
+            qDebug() << "ChatViewModel::data: avatarColumn";
+            // QImage will read file header to determine the format
+            return QImage::fromData(ret.toByteArray());
+        }
+        return ret;
+    }
+    else
+    {
+        qDebug() << "ChatViewModel::data: role not implemented";
     }
     return QVariant();
 }

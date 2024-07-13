@@ -2,21 +2,118 @@
 #include <QVBoxLayout>
 
 #include "chat_view.h"
+#include "chat_viewmodel.h"
 #include "common/misc.h"
 
 namespace MINIOICQ
 {
 
+void ChatDelegate::setEditorData(QWidget* editor,
+                                 const QModelIndex& index) const
+{
+    auto* model = qobject_cast<ChatViewModel*>(index.model());
+    // if(index.column() != model->avatarColumn())
+    // _avatar->setImage(message.avatar());
+    if (index.column() != model->messageColumn())
+    {
+        QStyledItemDelegate::setEditorData(editor, index);
+        return;
+    }
+
+    // set message widget
+    QString type = index.siblingAtColumn(model->typeColumn()).data().toString();
+    QByteArray message = index.data().toByteArray();
+    if (type.startsWith("text"))
+    {
+        // convert
+        QString content = QString::fromUtf8(message);
+
+        // create widget
+        QLabel* text = new QLabel(editor);
+
+        // style
+        // use QFontMetrics to calculate height
+        // https://stackoverflow.com/questions/37671839/how-to-use-qfontmetrics-boundingrect-to-measure-size-of-multilne-message/37674690#37674690
+        text->setStyleSheet("font-size: 14px;");
+        auto height = QFontMetrics(text->font())
+                          .boundingRect(0, 0, ChatViewItem::MessageWidth, 0,
+                                        Qt::TextWordWrap, content)
+                          .height();
+        text->setFixedSize(ChatViewItem::MessageWidth,
+                           2 * ChatViewItem::MessageVMargin + height);
+        text->setWordWrap(true);
+        text->setContentsMargins(ChatViewItem::MessageMargins);
+
+        // data
+        text->setText(content);
+
+        // format
+        if (type == "text/html")
+        {
+            text->setTextFormat(Qt::RichText);
+        }
+        else if (type == "text/plain")
+        {
+            text->setTextFormat(Qt::PlainText);
+        }
+
+        // set parent height
+        editor->setFixedHeight(text->height());
+    }
+    else if (type.startsWith("image"))
+    {
+        // Qt support common image format probe:
+        // bmp, gif, jpg, jpeg, png
+        if (type == "image/jpeg" || type == "image/png" ||
+            type == "image/bmp" || type == "image/gif")
+        {
+            QImage image;
+            image.loadFromData(message);
+            QLabel* imageLabel = new QLabel(editor);
+            imageLabel->setPixmap(QPixmap::fromImage(image));
+            imageLabel->setFixedSize(ChatViewItem::MessageWidth,
+                                     ChatViewItem::MessageWidth);
+            imageLabel->setContentsMargins(ChatViewItem::MessageMargins);
+            editor->setFixedHeight(ChatViewItem::MessageWidth +
+                                   2 * ChatViewItem::MessageVMargin);
+        }
+        else
+        {
+            // display unsupported message
+            QLabel* text = new QLabel(editor);
+            text->setText("Unsupported image format");
+            text->setStyleSheet("color: red; font-size: 14px;");
+            text->setFixedSize(ChatViewItem::MessageWidth,
+                               2 * ChatViewItem::MessageVMargin + 20);
+            text->setContentsMargins(ChatViewItem::MessageMargins);
+            editor->setFixedHeight(text->height());
+        }
+    }
+    else
+    {
+        // display unsupported message
+        QLabel* text = new QLabel(editor);
+        text->setText("Unsupported message type");
+        text->setStyleSheet("color: red; font-size: 14px;");
+        text->setFixedSize(ChatViewItem::MessageWidth,
+                           2 * ChatViewItem::MessageVMargin + 20);
+        text->setContentsMargins(ChatViewItem::MessageMargins);
+        editor->setFixedHeight(text->height());
+    }
+    editor->parentWidget()->setFixedHeight(2 * ChatViewItem::VMargin +
+                                           ChatViewItem::NameHeight +
+                                           editor->height());
+    // qDebug() << "this height" << this->height();
+    // qDebug() << "name height" << _name->height();
+    // qDebug() << "vlayout size" << vLayout->minimumSize().height();
+    // qDebug() << "message height" << _message->height();
+}
+
 QMargins const ChatViewItem::MessageMargins{
     ChatViewItem::MessageHMargin, ChatViewItem::MessageVMargin,
     ChatViewItem::MessageHMargin, ChatViewItem::MessageVMargin};
 
-ChatViewItem::ChatViewItem(Message& message, QWidget* parent) : QWidget(parent)
-{
-    initUi(message);
-}
-
-void ChatViewItem::initUi(Message& message)
+void ChatViewItem::initUi()
 {
     _name = new QLabel(this);
     _avatar = new QtMaterialAvatar(this);
@@ -43,7 +140,6 @@ void ChatViewItem::initUi(Message& message)
     layout->setSpacing(0);
     // layout->setAlignment(Qt::AlignLeft);
     //  avatar
-    _avatar->setImage(message.avatar());
     _avatar->setSize(AvatarSize);
     _avatar->setContentsMargins(zeroMargins);
     layout->setAlignment(_avatar, Qt::AlignTop);
@@ -61,73 +157,9 @@ void ChatViewItem::initUi(Message& message)
     _message->setContentsMargins(zeroMargins);
     // time
     _time->setStyleSheet("font-size: 10px; color: gray;");
-    _time->setText(message.time().toString("hh:mm"));
 
-    // fill data
-    _name->setText(message.sender());
-    qDebug() << _name->text();
-
-    // init message
-    if (message.type().startsWith("text"))
-    {
-        QLabel* text = new QLabel(_message);
-
-        // style
-        // use QFontMetrics to calculate height
-        // https://stackoverflow.com/questions/37671839/how-to-use-qfontmetrics-boundingrect-to-measure-size-of-multilne-message/37674690#37674690
-        text->setStyleSheet("font-size: 14px;");
-        auto height = QFontMetrics(text->font())
-                          .boundingRect(0, 0, MessageWidth, 0, Qt::TextWordWrap,
-                                        message.content())
-                          .height();
-        text->setFixedSize(MessageWidth, 2 * MessageVMargin + height);
-        text->setWordWrap(true);
-        text->setContentsMargins(MessageMargins);
-
-        // data
-        text->setText(message.content());
-
-        // set format
-        if (message.type() == "text/html")
-        {
-            text->setTextFormat(Qt::RichText);
-        }
-        else if (message.type() == "text/plain")
-        {
-            text->setTextFormat(Qt::PlainText);
-        }
-
-        // set parent height
-        _message->setFixedHeight(text->height());
-    }
-    else if (message.type().startsWith("image"))
-    {
-        if (message.type() == "image/jpeg" || message.type() == "image/png")
-        {
-            QImage image;
-            image.loadFromData(message.content());
-            QLabel* imageLabel = new QLabel(_message);
-            imageLabel->setPixmap(QPixmap::fromImage(image));
-            imageLabel->setFixedSize(MessageWidth, MessageWidth);
-            imageLabel->setContentsMargins(MessageMargins);
-            _message->setFixedHeight(MessageWidth + 2 * MessageVMargin);
-        }
-    }
-    else
-    {
-        // display unsupported message
-        QLabel* text = new QLabel(_message);
-        text->setText("Unsupported message type");
-        text->setStyleSheet("color: red; font-size: 14px;");
-        text->setFixedSize(MessageWidth, 2 * MessageVMargin + 20);
-        text->setContentsMargins(MessageMargins);
-        _message->setFixedHeight(2 * MessageVMargin + 20);
-    }
+    // set parent height
     this->setFixedHeight(2 * VMargin + NameHeight + _message->height());
-    // qDebug() << "this height" << this->height();
-    // qDebug() << "name height" << _name->height();
-    // qDebug() << "vlayout size" << vLayout->minimumSize().height();
-    // qDebug() << "message height" << _message->height();
 }
 
 ChatView::ChatView(QWidget* parent) : QWidget(parent)
@@ -198,42 +230,117 @@ void ChatView::initUi()
     _closeButton->setText("Close");
 
     // fill default data
-    _input->setText(
-        "<p>The distinction between the subjects of syntax and semantics "
-        "has its origin in the study of natural languages.</p><p>The "
-        "distinction between the subjects of syntax and semantics has its "
-        "origin in the study of natural languages.</p><p>The distinction "
-        "between the subjects of syntax and semantics has its origin in "
-        "the study of natural languages.</p><p>The distinction between the "
-        "subjects of syntax and semantics has its origin in the study of "
-        "natural languages.</p><p>The distinction between the subjects of "
-        "syntax and semantics has its origin in the study of natural "
-        "languages.</p><p>The distinction between the subjects of syntax "
-        "and semantics has its origin in the study of natural "
-        "languages.</p><p>The distinction between the subjects of syntax "
-        "and semantics has its origin in the study of natural "
-        "languages.</p><p>The distinction between the subjects of syntax "
-        "and semantics has its origin in the study of natural "
-        "languages.</p>");
-    for (int i = 0; i < 10; i++)
-    {
-
-        MINIOICQ::Message message(
-            "-1", "-1", "me", "text/plain",
-            QByteArray("a very very very very long long long message a "
-                       "very very very very long long long message"),
-            QDateTime::currentDateTime());
-        message.setAvatar(QImage(":/testImage.jpg"));
-        auto item = new ChatViewItem(message, _chatList);
-        chatListLayout->addWidget(item);
-    }
+    // _input->setText(
+    //     "<p>The distinction between the subjects of syntax and semantics "
+    //     "has its origin in the study of natural languages.</p><p>The "
+    //     "distinction between the subjects of syntax and semantics has its "
+    //     "origin in the study of natural languages.</p><p>The distinction "
+    //     "between the subjects of syntax and semantics has its origin in "
+    //     "the study of natural languages.</p><p>The distinction between the "
+    //     "subjects of syntax and semantics has its origin in the study of "
+    //     "natural languages.</p><p>The distinction between the subjects of "
+    //     "syntax and semantics has its origin in the study of natural "
+    //     "languages.</p><p>The distinction between the subjects of syntax "
+    //     "and semantics has its origin in the study of natural "
+    //     "languages.</p><p>The distinction between the subjects of syntax "
+    //     "and semantics has its origin in the study of natural "
+    //     "languages.</p><p>The distinction between the subjects of syntax "
+    //     "and semantics has its origin in the study of natural "
+    //     "languages.</p>");
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     MINIOICQ::Message message(
+    //         "-1", "-1", "me", "text/plain",
+    //         QByteArray("a very very very very long long long message a "
+    //                    "very very very very long long long message"),
+    //         QDateTime::currentDateTime());
+    //     message.setAvatar(QImage(":/testImage.jpg"));
+    //     auto item = new ChatViewItem(message, _chatList);
+    //     chatListLayout->addWidget(item);
+    // }
     // set parent height
     _chatList->setFixedHeight(_chatList->layout()->minimumSize().height());
 }
 
 void ChatView::initConnect() {}
 
-void ChatView::setModel(QAbstractItemModel* model) {}
+void ChatView::update()
+{
+    qDebug() << "ChatView::update";
+    if (_mappers.empty())
+    {
+        qDebug() << "ChatView::update: mappers is empty";
+        return;
+    }
+    auto* model = qobject_cast<ChatViewModel*>(_mappers[0]->model());
+
+    // clear mapping
+    for (auto* mapper : _mappers)
+    {
+        // TODO: delegate need to be deleted?
+        mapper->clearMapping();
+    }
+
+    // adjust item count
+    auto* layout = _chatList->layout();
+    auto modelItemNum = model->rowCount();
+    auto layoutItemNum = layout->count();
+    if (modelItemNum > layoutItemNum)
+    {
+        for (int i = layoutItemNum; i < modelItemNum; i++)
+        {
+            // widget
+            auto* item = new ChatViewItem(_chatList);
+            layout->addWidget(item);
+            // mapper
+            auto* mapper = new QDataWidgetMapper(this);
+            _mappers.push_back(mapper);
+        }
+    }
+    else if (modelItemNum < layoutItemNum)
+    {
+        for (int i = layoutItemNum; i > modelItemNum; i--)
+        {
+            // widget
+            auto* item = layout->itemAt(i - 1)->widget();
+            layout->removeWidget(item);
+            delete item;
+            // mapper
+            auto* mapper = _mappers.back();
+            _mappers.pop_back();
+            delete mapper;
+        }
+    }
+
+    // refresh item
+    for (int i = 0; i < modelItemNum; i++)
+    {
+        auto* item = qobject_cast<ChatViewItem*>(layout->itemAt(i)->widget());
+        auto* mapper = new QDataWidgetMapper(this);
+        mapper->setModel(model);
+        mapper->setItemDelegate(new ChatDelegate(this));
+        mapper->addMapping(item->_name, model->nameColumn(), "text");
+        mapper->addMapping(item->_avatar, model->avatarColumn(), "image");
+        mapper->addMapping(item->_message, model->messageColumn());
+        mapper->addMapping(item->_time, model->sendTimeColumn(), "text");
+        mapper->setCurrentIndex(i);
+        _mappers.push_back(mapper);
+    }
+}
+
+void ChatView::setModel(QAbstractItemModel* model)
+{
+    if (!_mappers.empty())
+    {
+        qDebug() << "ChatView::setModel: mappers is not empty";
+        return;
+    }
+    connect(model, &QAbstractItemModel::dataChanged, this, &ChatView::update);
+    auto initMapper = new QDataWidgetMapper(this);
+    initMapper->setModel(model);
+    _mappers.push_back(initMapper);
+    update();
+}
 
 void ChatView::on_sendButton_clicked() {}
 

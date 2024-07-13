@@ -2,24 +2,37 @@
 #define CHAT_VIEW_H
 
 #include <QAbstractItemModel>
+#include <QDataWidgetMapper>
 #include <QLabel>
 #include <QMargins>
-#include <QWidget>
-#include <QSplitter>
-#include <QTextEdit>
 #include <QScrollArea>
+#include <QSplitter>
+#include <QStyledItemDelegate>
+#include <QTextEdit>
 #include <QVBoxLayout>
+#include <QWidget>
 
-#include "qtmaterialavatar.h"
 #include "qtmaterialappbar.h"
-#include "qtmaterialscrollbar.h"
-#include "qtmaterialraisedbutton.h"
+#include "qtmaterialavatar.h"
 #include "qtmaterialiconbutton.h"
+#include "qtmaterialraisedbutton.h"
+#include "qtmaterialscrollbar.h"
 
 #include "common/message.h"
 
 namespace MINIOICQ
 {
+
+class ChatDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+private:
+    void setEditorData(QWidget* editor,
+                       const QModelIndex& index) const override;
+};
 
 class ChatViewItem : public QWidget
 {
@@ -40,10 +53,10 @@ public:
 
     static QMargins const MessageMargins;
 
-    ChatViewItem(Message& message, QWidget* parent = 0);
+    ChatViewItem(QWidget* parent = 0) : QWidget(parent) { initUi(); }
 
 private:
-    void initUi(Message& message);
+    void initUi();
 
 private:
     // components
@@ -51,9 +64,11 @@ private:
     QtMaterialAvatar* _avatar;
     QWidget* _message;
     QLabel* _time;
+
+    friend class ChatView;
 };
 
-class ChatView: public QWidget
+class ChatView : public QWidget
 {
     Q_OBJECT
 
@@ -79,6 +94,7 @@ private:
     // event
 
 public slots:
+    void update();
 
 private slots:
     // from component
@@ -88,6 +104,9 @@ Q_SIGNALS:
     void send(const Message& message);
 
 private:
+    // bind
+    QVector<QDataWidgetMapper*> _mappers;
+
     // components
     QSplitter* _splitter;
     QtMaterialAppBar* _appBar;
