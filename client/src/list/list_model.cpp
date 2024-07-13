@@ -12,6 +12,7 @@ namespace MINIOICQ
 void ListModel::setDatabase(QSqlDatabase db)
 {
     // Execute MINIOICQ/sql/client.sql to create the tables
+    _db = db;
     auto tables = db.tables();
     if (!tables.contains("users"))
     {
@@ -49,7 +50,7 @@ void ListModel::on_message_received()
 
 void ListModel::refresh()
 {
-    setQuery("SELECT * FROM chat_list_view");
+    setQuery("SELECT * FROM chat_list_view", _db);
     setHeaderData(0, Qt::Horizontal, "cid");
     setHeaderData(1, Qt::Horizontal, "name");
     setHeaderData(2, Qt::Horizontal, "avatar");

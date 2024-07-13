@@ -12,6 +12,7 @@ class ListModel : public QSqlQueryModel
 
 public:
     void setDatabase(QSqlDatabase db);
+    QSqlDatabase database() const { return _db; }
 
 Q_SIGNALS:
     void message_received();
@@ -21,6 +22,8 @@ public slots:
 
 private:
     void refresh();
+
+    QSqlDatabase _db;
 };
 
 } // namespace MINIOICQ

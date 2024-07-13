@@ -49,7 +49,7 @@ void ChatModel::on_message_received()
 
 void ChatModel::refresh()
 {
-    setQuery("SELECT * FROM " + _viewName);
+    setQuery("SELECT * FROM " + _viewName, _db);
     setHeaderData(0, Qt::Horizontal, "mid");
     setHeaderData(1, Qt::Horizontal, "message");
     setHeaderData(2, Qt::Horizontal, "send_time");
