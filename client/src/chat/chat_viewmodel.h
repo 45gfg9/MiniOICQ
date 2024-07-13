@@ -27,6 +27,11 @@ public:
     void setSourceModel(ChatModel* model);
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
+public slots:
+    void on_newMsg(/* QVector<MINIOICQ::Message> & messages */);
+    void on_newChat(/* QVector<MINIOICQ::ChatInfo> chat */);
+    void on_newUser(QVector < MINIOICQ::UserInfo> & users);
+
 private:
 // mid, message, send_time, sender_id, name, avatar
     int _midColumn = -1;      // INT

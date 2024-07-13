@@ -41,7 +41,8 @@ signals:
 
     // to ListViewModel
     void newMsg(/* QVector<MINIOICQ::Message> & messages */);
-    void newChat(/* MINIOICQ::ChatInfo */);
+    void newChat(/* QVector<MINIOICQ::ChatInfo> chat */);
+    void newUser(QVector < MINIOICQ::UserInfo> & users);
 
 private:
     QWebSocket* _socket;
