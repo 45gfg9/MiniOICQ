@@ -98,6 +98,10 @@ int main(int argc, char* argv[])
     listViewModel.setSourceModel(&listModel);
     listViewModel.setWsConnector(&wsConnector);
     bindListView(&listView, &listViewModel);
+
+    MINIOICQ::ChatView chatView;
+    chatView.show();
+
     // Main Logic
     if (loginView->exec() == QDialog::Accepted)
     {

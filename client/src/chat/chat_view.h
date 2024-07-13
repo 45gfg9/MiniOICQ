@@ -40,15 +40,10 @@ public:
 
     static QMargins const MessageMargins;
 
-    ChatViewItem(AbstractMessage& message, QWidget* parent = 0);
+    ChatViewItem(Message& message, QWidget* parent = 0);
 
 private:
-    void initUi(AbstractMessage& message);
-    void initText(TextMessage& message);
-    void initImage(ImageMessage& message);
-    void initFile(FileMessage& message);
-    void initVoice(AudioMessage& message);
-    void initVideo(VideoMessage& message);
+    void initUi(Message& message);
 
 private:
     // components
@@ -90,7 +85,7 @@ private slots:
     void on_sendButton_clicked();
 
 Q_SIGNALS:
-    void send(const AbstractMessage& message);
+    void send(const Message& message);
 
 private:
     // components

@@ -31,7 +31,7 @@ public slots:
     void on_reg(const QString& username, const QString& password);
 
     void on_view();
-    void on_send(const MINIOICQ::AbstractMessage& msg);
+    void on_send(const MINIOICQ::Message& msg);
 
 signals:
     void messageReceived(const QString& message);
@@ -43,7 +43,7 @@ signals:
     void regFailed(const QString& reason);
 
     // to ListViewModel
-    void newMsg(QVector<MINIOICQ::AbstractMessage>& messages);
+    void newMsg(QVector<MINIOICQ::Message>& messages);
     void newChat(QVector<MINIOICQ::ChatInfo>& chat);
     void newUser(QVector<MINIOICQ::UserInfo>& users);
 

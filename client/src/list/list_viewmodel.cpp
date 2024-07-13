@@ -77,7 +77,7 @@ void ListViewModel::on_invite(const QVector<UserInfo>& users)
     emit createChat(users);
 }
 
-void ListViewModel::on_newMsg(QVector<MINIOICQ::AbstractMessage>& messages)
+void ListViewModel::on_newMsg(QVector<MINIOICQ::Message>& messages)
 {
     qDebug() << "ListViewModel::on_newMsg";
     ListModel* model = qobject_cast<ListModel*>(sourceModel());

@@ -31,7 +31,6 @@ SOURCES = \
     chat/chat_viewmodel.cpp \
     chat/chat_model.cpp \
     chat/chat_manager.cpp \
-    common/message.cpp \
     common/misc.cpp \
 
 RESOURCES += \

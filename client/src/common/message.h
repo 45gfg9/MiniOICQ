@@ -11,146 +11,58 @@
 namespace MINIOICQ
 {
 
-enum class MessageType
-{
-    Text,
-    Image,
-    File,
-    Audio,
-    Video,
-};
-
-static inline QString MessageTypeToQString(MessageType type)
-{
-    switch (type)
-    {
-        case MessageType::Text:
-            return "Text";
-        case MessageType::Image:
-            return "Image";
-        case MessageType::File:
-            return "File";
-        case MessageType::Audio:
-            return "Audio";
-        case MessageType::Video:
-            return "Video";
-        default:
-            return "Unknown";
-    }
-}
-
-class AbstractMessage
+class Message
 {
 public:
     // used for ws to construct a full-feature message
-    AbstractMessage(QString msgId, QString chatId, QString sender,
-                    MessageType type, QString content, QDateTime time)
+    Message(QString msgId, QString chatId, QString sender, QString type,
+            QByteArray content, QDateTime time)
         : _msgId(msgId), _chatId(chatId), _sender(sender), _type(type),
-          _time(time), _content(content)
+          _content(content), _time(time)
     {
     }
-
-    virtual ~AbstractMessage() = default;
 
     QJsonObject pack() const
     {
         QJsonObject obj;
         obj["chat_id"] = _chatId;
-        obj["type"] = MessageTypeToQString(_type);
-        obj["content"] = _content;
+        obj["type"] = _type;
+        obj["content"] = QString(_content.toBase64());
+        obj["time"] = _time.toString(Qt::ISODate);
         return obj;
     }
     QString msgId() const { return _msgId; }
     QString chatId() const { return _chatId; }
     QString sender() const { return _sender; }
-    MessageType type() const { return _type; }
+    QString type() const { return _type; }
     QDateTime time() const { return _time; }
-    QString content() const { return _content; }
+    QByteArray content() const { return _content; }
     QImage avatar() const { return _avatar; }
 
     void setAvatar(QImage avatar) { _avatar = avatar; }
 
-protected:
-    AbstractMessage(QString sender, MessageType type)
-        : AbstractMessage("-1", "-1", sender, type, "",
-                          QDateTime::currentDateTime())
-    {
-    }
+private:
 
     QString _msgId;
     QString _chatId;
     QString _sender;
-    MessageType _type;
+    /**
+     * @brief MIME type of the content
+     *
+     * currently we support:
+     *
+     * - text/plain
+     * - text/html
+     * - image/png
+     * - image/jpeg
+     *
+     */
+    QString _type;
+    QByteArray _content;
     QDateTime _time;
+
+    // only for view
     QImage _avatar;
-    QString _content;
-};
-
-class TextMessage : public AbstractMessage
-{
-public:
-    explicit TextMessage(QString sender, const QString& text)
-        : AbstractMessage(sender, MessageType::Text)
-    {
-        _content = text;
-    }
-};
-
-class ImageMessage : public AbstractMessage
-{
-public:
-    explicit ImageMessage(QString sender, const QImage& image)
-        : AbstractMessage(sender, MessageType::Image)
-    {
-        QByteArray byteArray;
-        QBuffer buffer(&byteArray);
-        buffer.open(QIODevice::WriteOnly);
-        image.save(&buffer, "PNG");
-        _content = QString::fromUtf8(byteArray.toBase64());
-    }
-};
-
-class FileMessage : public AbstractMessage
-{
-    QByteArray _file;
-    QString _fileName;
-
-public:
-    explicit FileMessage(QString sender, const QByteArray& file,
-                         const QString& fileName)
-        : AbstractMessage(sender, MessageType::File), _file(file),
-          _fileName(fileName)
-    {
-    }
-
-    QByteArray fileData() const { return _file; }
-    QString fileName() const { return _fileName; }
-};
-
-class AudioMessage : public AbstractMessage
-{
-    QAudioBuffer _audio;
-
-public:
-    explicit AudioMessage(QString sender, const QAudioBuffer& audio)
-        : AbstractMessage(sender, MessageType::Audio), _audio(audio)
-    {
-    }
-
-    QAudioBuffer audio() const { return _audio; }
-};
-
-class VideoMessage : public AbstractMessage
-{
-    QVideoFrame _video;
-
-public:
-    explicit VideoMessage(QString sender, const QVideoFrame& video)
-        : AbstractMessage(sender, MessageType::Video), _video(video)
-    {
-    }
-
-    QVideoFrame video() const { return _video; }
 };
 
 } // namespace MINIOICQ

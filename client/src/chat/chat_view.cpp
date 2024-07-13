@@ -11,13 +11,12 @@ QMargins const ChatViewItem::MessageMargins{
     ChatViewItem::MessageHMargin, ChatViewItem::MessageVMargin,
     ChatViewItem::MessageHMargin, ChatViewItem::MessageVMargin};
 
-ChatViewItem::ChatViewItem(AbstractMessage& message, QWidget* parent)
-    : QWidget(parent)
+ChatViewItem::ChatViewItem(Message& message, QWidget* parent) : QWidget(parent)
 {
     initUi(message);
 }
 
-void ChatViewItem::initUi(AbstractMessage& message)
+void ChatViewItem::initUi(Message& message)
 {
     _name = new QLabel(this);
     _avatar = new QtMaterialAvatar(this);
@@ -67,26 +66,62 @@ void ChatViewItem::initUi(AbstractMessage& message)
     // fill data
     _name->setText(message.sender());
     qDebug() << _name->text();
+
     // init message
-    switch (message.type())
+    if (message.type().startsWith("text"))
     {
-        case MessageType::Text:
-            initText(dynamic_cast<TextMessage&>(message));
-            break;
-        case MessageType::Image:
-            initImage(dynamic_cast<ImageMessage&>(message));
-            break;
-        case MessageType::File:
-            initFile(dynamic_cast<FileMessage&>(message));
-            break;
-        case MessageType::Audio:
-            initVoice(dynamic_cast<AudioMessage&>(message));
-            break;
-        case MessageType::Video:
-            initVideo(dynamic_cast<VideoMessage&>(message));
-            break;
-        default:
-            break;
+        QLabel* text = new QLabel(_message);
+
+        // style
+        // use QFontMetrics to calculate height
+        // https://stackoverflow.com/questions/37671839/how-to-use-qfontmetrics-boundingrect-to-measure-size-of-multilne-message/37674690#37674690
+        text->setStyleSheet("font-size: 14px;");
+        auto height = QFontMetrics(text->font())
+                          .boundingRect(0, 0, MessageWidth, 0, Qt::TextWordWrap,
+                                        message.content())
+                          .height();
+        text->setFixedSize(MessageWidth, 2 * MessageVMargin + height);
+        text->setWordWrap(true);
+        text->setContentsMargins(MessageMargins);
+
+        // data
+        text->setText(message.content());
+
+        // set format
+        if (message.type() == "text/html")
+        {
+            text->setTextFormat(Qt::RichText);
+        }
+        else if (message.type() == "text/plain")
+        {
+            text->setTextFormat(Qt::PlainText);
+        }
+
+        // set parent height
+        _message->setFixedHeight(text->height());
+    }
+    else if (message.type().startsWith("image"))
+    {
+        if (message.type() == "image/jpeg" || message.type() == "image/png")
+        {
+            QImage image;
+            image.loadFromData(message.content());
+            QLabel* imageLabel = new QLabel(_message);
+            imageLabel->setPixmap(QPixmap::fromImage(image));
+            imageLabel->setFixedSize(MessageWidth, MessageWidth);
+            imageLabel->setContentsMargins(MessageMargins);
+            _message->setFixedHeight(MessageWidth + 2 * MessageVMargin);
+        }
+    }
+    else
+    {
+        // display unsupported message
+        QLabel* text = new QLabel(_message);
+        text->setText("Unsupported message type");
+        text->setStyleSheet("color: red; font-size: 14px;");
+        text->setFixedSize(MessageWidth, 2 * MessageVMargin + 20);
+        text->setContentsMargins(MessageMargins);
+        _message->setFixedHeight(2 * MessageVMargin + 20);
     }
     this->setFixedHeight(2 * VMargin + NameHeight + _message->height());
     // qDebug() << "this height" << this->height();
@@ -94,37 +129,6 @@ void ChatViewItem::initUi(AbstractMessage& message)
     // qDebug() << "vlayout size" << vLayout->minimumSize().height();
     // qDebug() << "message height" << _message->height();
 }
-
-void ChatViewItem::initText(TextMessage& message)
-{
-    QLabel* text = new QLabel(_message);
-
-    // style
-    // use QFontMetrics to calculate height
-    // https://stackoverflow.com/questions/37671839/how-to-use-qfontmetrics-boundingrect-to-measure-size-of-multilne-message/37674690#37674690
-    text->setStyleSheet("font-size: 14px;");
-    auto height = QFontMetrics(text->font())
-                      .boundingRect(0, 0, MessageWidth, 0, Qt::TextWordWrap,
-                                    message.content())
-                      .height();
-    text->setFixedSize(MessageWidth, 2 * MessageVMargin + height);
-    text->setWordWrap(true);
-    text->setContentsMargins(MessageMargins);
-
-    // data
-    text->setText(message.content());
-
-    // set parent height
-    _message->setFixedHeight(text->height());
-}
-
-void ChatViewItem::initImage(ImageMessage& message) {}
-
-void ChatViewItem::initFile(FileMessage& message) {}
-
-void ChatViewItem::initVoice(AudioMessage& message) {}
-
-void ChatViewItem::initVideo(VideoMessage& message) {}
 
 ChatView::ChatView(QWidget* parent) : QWidget(parent)
 {
@@ -213,9 +217,12 @@ void ChatView::initUi()
         "languages.</p>");
     for (int i = 0; i < 10; i++)
     {
-        MINIOICQ::TextMessage message(
-            "me", "a very very very very long long long message a "
-                  "very very very very long long long message");
+
+        MINIOICQ::Message message(
+            "-1", "-1", "me", "text/plain",
+            QByteArray("a very very very very long long long message a "
+                       "very very very very long long long message"),
+            QDateTime::currentDateTime());
         message.setAvatar(QImage(":/testImage.jpg"));
         auto item = new ChatViewItem(message, _chatList);
         chatListLayout->addWidget(item);

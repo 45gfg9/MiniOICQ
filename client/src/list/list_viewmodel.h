@@ -48,7 +48,7 @@ public slots:
     void on_invite(const QVector<UserInfo>& users);
 
     // from WebSocketConnector
-    void on_newMsg(QVector<MINIOICQ::AbstractMessage>& messages);
+    void on_newMsg(QVector<MINIOICQ::Message>& messages);
     void on_newChat(QVector<MINIOICQ::ChatInfo>& chat);
     void on_newUser(QVector<MINIOICQ::UserInfo>& users);
 

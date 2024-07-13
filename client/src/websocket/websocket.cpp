@@ -131,7 +131,7 @@ void WebSocketConnector::on_reg(const QString& username,
 
 void WebSocketConnector::on_view() { qDebug() << "View message"; }
 
-void WebSocketConnector::on_send(const MINIOICQ::AbstractMessage& msg)
+void WebSocketConnector::on_send(const MINIOICQ::Message& msg)
 {
     qDebug() << "Sending message";
 }
