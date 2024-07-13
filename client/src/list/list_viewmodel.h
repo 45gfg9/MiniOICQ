@@ -34,6 +34,8 @@ public:
 
     void setWsConnector(WebSocketConnector* wsConnector);
 
+    QVector<MINIOICQ::UserInfo> selectUser();
+
 public slots:
 
     // from ListView

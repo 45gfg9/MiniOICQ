@@ -38,6 +38,26 @@ void ListViewModel::setWsConnector(WebSocketConnector* wsConnector)
             &ListViewModel::on_newMsg);
 }
 
+QVector<MINIOICQ::UserInfo> ListViewModel::selectUser()
+{
+    ListModel* model = qobject_cast<ListModel*>(sourceModel());
+    QSqlDatabase db = model->database();
+    QSqlTableModel userModel(nullptr, db);
+    userModel.setTable("users");
+    userModel.select();
+    QVector<UserInfo> users;
+    for (int i = 0; i < userModel.rowCount(); ++i)
+    {
+        QSqlRecord user = userModel.record(i);
+        UserInfo userInfo;
+        userInfo.setUserId(user.value("uid").toString());
+        userInfo.setUsername(user.value("name").toString());
+        userInfo.setAvatar(user.value("avatar").value<QImage>());
+        users.push_back(userInfo);
+    }
+    return users;
+}
+
 void ListViewModel::on_itemList_clicked(const QVariant& chatId)
 {
     qDebug() << "ListViewModel::on_itemList_clicked: chatId=" << chatId;
