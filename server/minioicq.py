@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
 import asyncio
-import msgpack
 import pathlib
+import json
+import base64
 import ssl
 import sqlite3
 import argon2
+import random
 from bidict import bidict
 from uuid import UUID
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
@@ -53,7 +55,7 @@ class ServerApp:
                 if msg is None:
                     await ws.close()
                     break
-                await ws.send(msgpack.packb(msg))
+                await ws.send(json.dumps(msg))
         except ConnectionClosedOK:
             print(f'Connection {ws.id} closed normally')
         except ConnectionClosedError as e:
@@ -71,7 +73,7 @@ class ServerApp:
         waiter_task = asyncio.create_task(self.__msg_waiter(websocket, q))
 
         async for message in websocket:
-            message = msgpack.unpackb(message)
+            message = json.loads(message)
             action = message['action']
             handler = self.routes.get(action, self.__default_handler)
             if (response := await handler(websocket, message)) is not None:
@@ -103,6 +105,7 @@ async def heartbeat(ws: WebSocketServerProtocol, req: dict):
         return {'action': 'heartbeat.ack'}
     else:
         print(f'Unauthenticated user {ws.id} sent heartbeat')
+        return
 
 
 @app.route('auth.login')
@@ -115,14 +118,16 @@ async def auth_login(ws: WebSocketServerProtocol, req: dict):
         return {'action': 'auth.login.fail', 'reason': 'User not found'}
     else:
         user_name, pwd, avatar = row
-    if avatar is None:
-        avatar = b''
+    avatar = base64.b64encode(avatar).decode() if avatar is not None else ''
 
     ph = argon2.PasswordHasher()
     try:
         ph.verify(pwd, password)
     except argon2.exceptions.VerifyMismatchError:
-        return {'action': 'auth.login.fail', 'reason': 'Incorrect password'}
+        return {
+            'action': 'auth.login.fail',
+            'reason': 'Incorrect password',
+        }
 
     if ph.check_needs_rehash(pwd):
         new_pwd = ph.hash(password)
@@ -134,7 +139,14 @@ async def auth_login(ws: WebSocketServerProtocol, req: dict):
         await app.clients[app.users[user_id]].put(None)
 
     app.users[user_id] = ws.id
-    return {'action': 'auth.login.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
+    return {
+        'action': 'auth.login.success',
+        'user_id': str(user_id),
+        'user_name': user_name,
+        'password': password,
+        'avatar': avatar,
+        'users': get_all_users(),
+    }
 
 
 @app.route('auth.register')
@@ -152,7 +164,14 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
     conn.commit()
 
     app.users[user_id] = ws.id
-    return {'action': 'auth.register.success', 'user_id': str(user_id), 'user_name': user_name, 'password': password, 'avatar': avatar}
+    return {
+        'action': 'auth.register.success',
+        'user_id': str(user_id),
+        'user_name': user_name,
+        'password': password,
+        'avatar': base64.b64encode(avatar).decode(),
+        'users': get_all_users(),
+    }
 
 
 @app.route('auth.logout')
@@ -174,7 +193,13 @@ async def message_send(ws: WebSocketServerProtocol, req: dict):
 
     # check if chat exists
     if conn.execute('SELECT 1 FROM chats WHERE cid = ?', (chat_id,)).fetchone() is None:
-        return {'action': 'message.send.fail', 'reason': 'Chat not found'}
+        return {
+            'action': 'message.send.fail',
+            'reason': 'Chat not found',
+        }
+
+    mid = random.randint(1, 2**31-1)
+    conn.execute('INSERT INTO messages (cid, mid, type, content, sender_id) VALUES (?, ?, ?, ?, ?)', (chat_id, mid, type, content, sender_userid))
 
     # send to all users in chat
     msg = {
@@ -213,7 +238,7 @@ async def chat_create(ws: WebSocketServerProtocol, req: dict):
         'members': [{
             'user_id': uid,
             'user_name': nick,
-            'avatar': avatar,
+            'avatar': base64.b64encode(avatar).decode(),
         } for uid, nick, avatar in members],
     }
     members = req['members']
@@ -221,6 +246,30 @@ async def chat_create(ws: WebSocketServerProtocol, req: dict):
         if (ws_id := app.users.get(user_id)) is not None:
             await app.clients[ws_id].put(msg)
     return msg
+
+
+@app.route('avatar.set')
+async def avatar_set(ws: WebSocketServerProtocol, req: dict):
+    print(f'Avatar set request from {ws.id}: {req}')
+    if (user_id := app.users.inverse.get(ws.id)) is None:
+        print(f'Unauthenticated user {ws.id} tried to set avatar')
+        return
+
+    avatar = base64.decode(req['avatar'].encode())
+    conn.execute('UPDATE users SET avatar = ? WHERE uid = ?', (avatar, user_id))
+    conn.commit()
+
+    return {
+        'action': 'avatar.set.ack',
+    }
+
+
+def get_all_users():
+    return [{
+        'user_id': user_id,
+        'user_name': user_name,
+        'avatar': base64.b64encode(avatar).decode(),
+    } for user_id, user_name, avatar in conn.execute('SELECT uid, nick, avatar FROM users').fetchall()]
 
 
 with sqlite3.connect(DB_FILE) as conn:

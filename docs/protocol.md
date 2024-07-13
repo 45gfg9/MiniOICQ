@@ -21,6 +21,9 @@ Server should respond with a success.
     "user_name": "[user name]",
     "password": "[user's password]",
     "avatar": "[generated avatar]",
+    "users": [{
+        ...
+    }]
 }
 ```
 
@@ -45,6 +48,9 @@ Server should respond with a success or an error if the password is incorrect.
     "user_name": "[user name]",
     "password": "[user's password]",
     "avatar": "[avatar]",
+    "users": [{
+        ...
+    }]
 }
 ```
 
@@ -96,7 +102,7 @@ Server should respond with:
     "message": {
         "chat_id": "[recipient's chat_id]",
         "type": "[type]",
-        "content": "[raw binary data]",
+        "content": "[data]",
     },
 }
 ```
@@ -104,10 +110,10 @@ Server should respond with:
 `type` can be one of the following:
 
 - `text`, UTF-8 encoded
-- `image`
-- `file`
-- `video` (reserved)
-- `audio` (reserved)
+- `image`, base64 encoded
+- `file`, base64 encoded
+- `video`, base64 encoded (reserved)
+- `audio`, base64 encoded (reserved)
 
 The server should respond with a failure message if the chat does not exist:
 
@@ -182,7 +188,7 @@ The server should send the following message to all members:
 }
 ```
 
-`avatar` is the raw image data. Server should respond with:
+`avatar` is the base64 encoded image data. Server should respond with:
 
 ```json
 {
