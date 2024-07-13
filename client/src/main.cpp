@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
     {
         qDebug() << "Login success";
         QSqlDatabase localChatDB;
-        initDB(loginViewModel.loggedUserId(), localChatDB);
+        initDB("client_db_" + loginViewModel.loggedUserId() + ".db", localChatDB);
         listModel.setDatabase(localChatDB);
         listView.show();
     }
