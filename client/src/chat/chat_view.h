@@ -19,7 +19,9 @@ public:
     static int constexpr HMargin = 20;
     static int constexpr VMargin = 8;
     static int constexpr AvatarSize = 32;
+    static int constexpr NameHeight = 18;
     static int constexpr MessagePadding = 40;
+    static int constexpr MessageGap = 8;
     static int constexpr MessageWidth = Width - HMargin * 2 - AvatarSize - MessagePadding;
     static int constexpr MessageHMargin = 8;
     static int constexpr MessageVMargin = 10;

@@ -31,25 +31,27 @@ void ChatViewItem::initUi(AbstractMessage& message)
 
     // style
     // item
-    //this->setPalette(themePalette);
-    this->setContentsMargins(zeroMargins);
+    this->setPalette(themePalette);
+    // this->setContentsMargins(zeroMargins);
     this->setFixedWidth(Width);
     // layout
     layout->setContentsMargins(HMargin, VMargin, HMargin, VMargin);
     layout->setSpacing(0);
-    // avatar
+    // layout->setAlignment(Qt::AlignLeft);
+    //  avatar
+    _avatar->setImage(message.avatar());
     _avatar->setSize(AvatarSize);
-    _avatar->setIcon(QIcon(":/close.svg"));
+    _avatar->setContentsMargins(zeroMargins);
     layout->setAlignment(_avatar, Qt::AlignTop);
     // vLayout
-    vLayout->setContentsMargins(zeroMargins);
+    vLayout->setContentsMargins(MessageGap, 0, MessagePadding, 0);
     vLayout->setSpacing(0);
     // name
-    _name->setStyleSheet(themeStyleSheetDeep + "font-size: 12px;");
-    _name->setFixedSize(MessageWidth, 0);
-    _name->setContentsMargins(0, 0, MessagePadding, 0);
+    _name->setStyleSheet(themeStyleSheetLight + "font-size: 12px;");
+    _name->setFixedSize(MessageWidth + MessagePadding, NameHeight);
+    _name->setContentsMargins(zeroMargins);
     // message
-    _message->setStyleSheet(themeStyleSheetLight);
+    _message->setStyleSheet(themeStyleSheetDeep + "border-radius: 8px;");
     // time
     _time->setStyleSheet("font-size: 10px; color: gray;");
     _time->setText(message.time().toString("hh:mm"));
@@ -78,6 +80,8 @@ void ChatViewItem::initUi(AbstractMessage& message)
         default:
             break;
     }
+    this->setFixedHeight(2 * HMargin + NameHeight + 2 * MessageHMargin +
+                         _message->height());
 }
 
 void ChatViewItem::initText(TextMessage& message)

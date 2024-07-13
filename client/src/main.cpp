@@ -1,3 +1,14 @@
+#include <QApplication>
+#include <QDebug>
+#include <QSortFilterProxyModel>
+#include <QSqlTableModel>
+
+#include "qtmaterialstyle.h"
+
+#include "chat/chat_model.h"
+#include "chat/chat_view.h"
+#include "chat/chat_viewmodel.h"
+#include "common/misc.h"
 #include "list/list_model.h"
 #include "list/list_view.h"
 #include "list/list_viewmodel.h"
@@ -5,11 +16,6 @@
 #include "login/login_view.h"
 #include "login/login_viewmodel.h"
 #include "websocket/websocket.h"
-#include <QDebug>
-#include <QSortFilterProxyModel>
-#include <QSqlTableModel>
-#include <QtWidgets/QApplication>
-#include <qtmaterialstyle.h>
 
 const QString localDBPath = "MINIOICQ/databases/";
 const QString localUserFileName = "localUser.db";
@@ -61,6 +67,7 @@ int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE(resources);
     QFont font("Roboto");
+    MINIOICQ::initTheme();
 
     // app style
     // QApplication::setStyle(&QtMaterialStyle::instance());
@@ -86,26 +93,37 @@ int main(int argc, char* argv[])
     MINIOICQ::bindLoginView(loginView, &loginViewModel);
 
     // List
-    MINIOICQ::ListView listView;
-    MINIOICQ::ListViewModel listViewModel;
-    MINIOICQ::ListModel listModel;
-    listViewModel.setSourceModel(&listModel);
-    listViewModel.setWsConnector(&wsConnector);
-    bindListView(&listView, &listViewModel);
-
-    // Main Logic
-    if (loginView->exec() == QDialog::Accepted)
+    // MINIOICQ::ListView listView;
+    // MINIOICQ::ListViewModel listViewModel;
+    // MINIOICQ::ListModel listModel;
+    // listViewModel.setSourceModel(&listModel);
+    // listViewModel.setWsConnector(&wsConnector);
+    // bindListView(&listView, &listViewModel);
+    /*
+        // Main Logic
+        if (loginView->exec() == QDialog::Accepted)
+        {
+            qDebug() << "Login success";
+            QSqlDatabase localChatDB;
+            initDB(loginViewModel.loggedUserId(), localChatDB);
+            listModel.setDatabase(localChatDB);
+            listView.show();
+        }
+        else
+        {
+            qDebug() << "Login failed";
+        }
+    */
+    qDebug() << "test";
+    MINIOICQ::TextMessage text("me", "hello world");
+    QDirIterator it(":", QDirIterator::Subdirectories);
+    while (it.hasNext())
     {
-        qDebug() << "Login success";
-        QSqlDatabase localChatDB;
-        initDB(loginViewModel.loggedUserId(), localChatDB);
-        listModel.setDatabase(localChatDB);
-        listView.show();
+        qDebug() << it.next();
     }
-    else
-    {
-        qDebug() << "Login failed";
-    }
+    text.setAvatar(QImage(":/testImage.jpg"));
+    MINIOICQ::ChatViewItem chatViewItem(text);
+    chatViewItem.show();
 
     return a.exec();
 }

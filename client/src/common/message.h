@@ -36,6 +36,8 @@ public:
     MessageType type() const { return _type; }
     QString sender() const { return _sender; }
     QDateTime time() const { return _time; }
+    QImage avatar() const { return _avatar; }
+    void setAvatar(QImage avatar) { _avatar = avatar; }
 
 protected:
     MessageType _type;
@@ -43,6 +45,7 @@ protected:
 private:
     QString _sender;
     QDateTime _time;
+    QImage _avatar;
 };
 
 class TextMessage : public AbstractMessage
