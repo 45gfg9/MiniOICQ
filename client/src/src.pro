@@ -16,6 +16,7 @@ HEADERS = \
     common/user_info.h \
     common/chat_info.h \
     common/message.h \
+    common/misc.h \
 
 SOURCES = \
     main.cpp \
@@ -31,6 +32,7 @@ SOURCES = \
     chat/chat_model.cpp \
     chat/chat_manager.cpp \
     common/message.cpp \
+    common/misc.cpp \
 
 RESOURCES += \
     resources.qrc

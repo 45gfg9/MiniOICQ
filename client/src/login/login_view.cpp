@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QVBoxLayout>
+#include "common/misc.h"
 
 namespace MINIOICQ
 {
@@ -108,9 +109,7 @@ void LoginView::initUI()
     layout->addLayout(buttonLayout);
 
     // style
-    QPalette palette = QPalette();
-    palette.setColor(QPalette::Background, Qt::white);
-    this->setPalette(palette);
+    this->setPalette(themePalette);
     this->setAttribute(Qt::WA_DeleteOnClose);
     // layout
     layout->setSpacing(30);
@@ -128,8 +127,8 @@ void LoginView::initUI()
     _password->setLabel("Password");
     _password->setEchoMode(QLineEdit::Password);
     // button
-    _login->setBackgroundColor(QColor(0, 150, 136));
-    _reg->setBackgroundColor(QColor(0, 150, 136));
+    _login->setBackgroundColor(QColor(0, 188, 212));
+    _reg->setBackgroundColor(QColor(0, 188, 212));
     buttonLayout->setSpacing(5);
 }
 

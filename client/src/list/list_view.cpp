@@ -1,12 +1,15 @@
-#include "list_view.h"
-#include "list_viewmodel.h"
-#include "qtmaterialiconbutton.h"
-#include "qtmaterialscrollbar.h"
 #include <QDate>
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QTime>
 #include <QVBoxLayout>
+
+#include "qtmaterialiconbutton.h"
+#include "qtmaterialscrollbar.h"
+
+#include "list_view.h"
+#include "list_viewmodel.h"
+#include "common/misc.h"
 
 namespace MINIOICQ
 {
@@ -39,9 +42,7 @@ void ListViewItem::initUi()
 
     // style
     // item
-    QPalette palette = QPalette();
-    palette.setColor(QPalette::Background, Qt::white);
-    this->setPalette(palette);
+    this->setPalette(themePalette);
     this->setFixedSize(kListViewWidth, kListViewItemHeight);
     // layout: border 16, space 8
     layout->setContentsMargins(16, 16, 16, 16);

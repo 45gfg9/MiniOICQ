@@ -6,9 +6,10 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QWidget>
-#include <qtmaterialappbar.h>
-#include <qtmaterialavatar.h>
-#include <qtmaterialfab.h>
+
+#include "qtmaterialappbar.h"
+#include "qtmaterialavatar.h"
+#include "qtmaterialfab.h"
 
 namespace MINIOICQ
 {

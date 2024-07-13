@@ -1,8 +1,10 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
+#include <QDateTime>
 #include <QFile>
 #include <QImage>
+#include <QTimeZone>
 #include <QtMultimedia>
 #include <msgpack.hpp>
 
@@ -11,24 +13,36 @@ namespace MINIOICQ
 
 enum class MessageType
 {
-    text,
-    image,
-    file,
-    audio,
-    video,
+    Text,
+    Image,
+    File,
+    Audio,
+    Video,
 };
 
 class AbstractMessage
 {
 public:
-    AbstractMessage(MessageType type) : _type(type) {}
+    // sender is id or name
+    AbstractMessage(QString sender, MessageType type,
+                    QDateTime time = QDateTime::currentDateTime())
+        : _sender(sender), _type(type), _time(time)
+    {
+    }
     virtual ~AbstractMessage() = default;
 
     virtual void pack(uint64_t cid,
                       msgpack::packer<msgpack::sbuffer>& pk) const = 0;
+    MessageType type() const { return _type; }
+    QString sender() const { return _sender; }
+    QDateTime time() const { return _time; }
 
 protected:
     MessageType _type;
+
+private:
+    QString _sender;
+    QDateTime _time;
 };
 
 class TextMessage : public AbstractMessage
@@ -36,8 +50,8 @@ class TextMessage : public AbstractMessage
     QString _text;
 
 public:
-    explicit TextMessage(const QString& text)
-        : AbstractMessage(MessageType::text), _text(text)
+    explicit TextMessage(QString sender, const QString& text)
+        : AbstractMessage(sender, MessageType::Text), _text(text)
     {
     }
 
@@ -59,8 +73,8 @@ class ImageMessage : public AbstractMessage
     QImage _image;
 
 public:
-    explicit ImageMessage(const QImage& image)
-        : AbstractMessage(MessageType::image), _image(image)
+    explicit ImageMessage(QString sender, const QImage& image)
+        : AbstractMessage(sender, MessageType::Image), _image(image)
     {
     }
 
@@ -79,8 +93,10 @@ class FileMessage : public AbstractMessage
     QString _fileName;
 
 public:
-    explicit FileMessage(const QByteArray& file, const QString& fileName)
-        : AbstractMessage(MessageType::file), _file(file), _fileName(fileName)
+    explicit FileMessage(QString sender, const QByteArray& file,
+                         const QString& fileName)
+        : AbstractMessage(sender, MessageType::File), _file(file),
+          _fileName(fileName)
     {
     }
 
@@ -99,8 +115,8 @@ class AudioMessage : public AbstractMessage
     QAudioBuffer _audio;
 
 public:
-    explicit AudioMessage(const QAudioBuffer& audio)
-        : AbstractMessage(MessageType::audio), _audio(audio)
+    explicit AudioMessage(QString sender, const QAudioBuffer& audio)
+        : AbstractMessage(sender, MessageType::Audio), _audio(audio)
     {
     }
 
@@ -120,8 +136,8 @@ class VideoMessage : public AbstractMessage
     QVideoFrame _video;
 
 public:
-    explicit VideoMessage(const QVideoFrame& video)
-        : AbstractMessage(MessageType::video), _video(video)
+    explicit VideoMessage(QString sender, const QVideoFrame& video)
+        : AbstractMessage(sender, MessageType::Video), _video(video)
     {
     }
 

@@ -15,6 +15,15 @@ class ChatViewItem : public QWidget
     Q_OBJECT
 
 public:
+    static int constexpr Width = 580;
+    static int constexpr HMargin = 20;
+    static int constexpr VMargin = 8;
+    static int constexpr AvatarSize = 32;
+    static int constexpr MessagePadding = 40;
+    static int constexpr MessageWidth = Width - HMargin * 2 - AvatarSize - MessagePadding;
+    static int constexpr MessageHMargin = 8;
+    static int constexpr MessageVMargin = 10;
+
     ChatViewItem(AbstractMessage& message, QWidget* parent = 0);
 
 private:
@@ -24,7 +33,6 @@ private:
     void initFile(FileMessage& message);
     void initVoice(AudioMessage& message);
     void initVideo(VideoMessage& message);
-
 
 private:
     // components
