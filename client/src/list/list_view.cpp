@@ -145,11 +145,11 @@ void ListView::initUi()
     _closeButton->setOffset(16, 16);
     // _closeButton->setMini(true);
 
-    // fill default data
-    for(int i = 0; i < 11; i++)
-    {
-        itemListLayout->addWidget(new ListViewItem(_itemList));
-    }
+    // debug: fill default data
+    // for(int i = 0; i < 11; i++)
+    // {
+    //     itemListLayout->addWidget(new ListViewItem(_itemList));
+    // }
 
 }
 
