@@ -91,6 +91,8 @@ void ListModel::refresh()
     setHeaderData(4, Qt::Horizontal, "last_message");
     setHeaderData(5, Qt::Horizontal, "last_send_time");
     setHeaderData(6, Qt::Horizontal, "un_read_count");
+    qDebug() << "refresh";
+    emit dataChanged(index(0, 0), index(rowCount(), columnCount()), {Qt::DisplayRole});
 }
 
 } // namespace MINIOICQ

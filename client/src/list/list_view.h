@@ -105,7 +105,11 @@ private:
     // void mouseReleaseEvent(QMouseEvent* event) override;
 
 public slots:
-    void on_dataChanged();
+    // debug
+    // void on_debug();
+
+    // from ListViewModel
+    void on_dataChanged(QModelIndex topLeft, QModelIndex bottomRight, QVector<int> roles);
 
 Q_SIGNALS:
     void clicked(int cid);

@@ -115,8 +115,6 @@ int main(int argc, char* argv[])
     MINIOICQ::ListView listView;
     MINIOICQ::ListViewModel listViewModel;
     MINIOICQ::ListModel listModel;
-    listViewModel.setSourceModel(&listModel);
-    listViewModel.setWsConnector(&wsConnector);
     bindListView(&listView, &listViewModel);
 
     MINIOICQ::ChatView chatView;
@@ -129,6 +127,8 @@ int main(int argc, char* argv[])
         QSqlDatabase localChatDB;
         initDB("client_db_" + loginViewModel.loggedUserId() + ".db", localChatDB);
         listModel.setDatabase(localChatDB);
+        listViewModel.setSourceModel(&listModel);
+        listViewModel.setWsConnector(&wsConnector);
         listView.show();
     }
     else

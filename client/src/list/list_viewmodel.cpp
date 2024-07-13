@@ -1,42 +1,76 @@
 #include "list_viewmodel.h"
-#include <QtAlgorithms>
 #include <QDebug>
 #include <QSortFilterProxyModel>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QtAlgorithms>
 
 namespace MINIOICQ
 {
 
-void ListViewModel::setSourceModel(ListModel* model)
+void ListViewModel::on_debug() { qDebug() << "ListViewModel::on_debug"; }
+
+void ListViewModel::invalidate()
 {
-    QSortFilterProxyModel::setSourceModel(model);
+    qDebug() << "ListViewModel::invalidate";
+    QSortFilterProxyModel::invalidate();
+    // qDebug() << "ListViewModel Content: ";
+    // for (int i = 0; i < rowCount(); ++i)
+    // {
+    //     for (int j = 0; j < columnCount(); ++j)
+    //     {
+    //         qDebug() << data(index(i, j)).toString();
+    //     }
+    // }
+    ListModel* model = qobject_cast<ListModel*>(sourceModel());
     _chatIdColumn = model->record().indexOf("cid");
     _chatNameColumn = model->record().indexOf("name");
     _chatAvatarColumn = model->record().indexOf("avatar");
+    // _chatLastMessageTypeColumn = model->record().indexOf("last_mtype");
     _chatLastMessageColumn = model->record().indexOf("last_message");
     _chatLastMessageTimeColumn = model->record().indexOf("last_send_time");
     _chatUnreadMessageCountColumn = model->record().indexOf("un_read_count");
     _chatManager = new ChatManager();
+
+    qDebug() << "ListViewModel::setSourceModel: chatIdColumn=" << _chatIdColumn
+             << ", chatNameColumn=" << _chatNameColumn
+             << ", chatAvatarColumn=" << _chatAvatarColumn
+             << ", chatLastMessageColumn=" << _chatLastMessageColumn
+             << ", chatLastMessageTimeColumn=" << _chatLastMessageTimeColumn
+             << ", chatUnreadMessageCountColumn="
+             << _chatUnreadMessageCountColumn;
+
+    emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
 }
 
-QVariant ListViewModel::data(const QModelIndex& index, int role) const
+void ListViewModel::setSourceModel(ListModel* model)
 {
-    if (role == Qt::DisplayRole)
+    QSortFilterProxyModel::setSourceModel(model);
+    connect(model, &QAbstractItemModel::dataChanged, this,
+            &ListViewModel::on_debug);
+    connect(model, &QAbstractItemModel::dataChanged, this,
+            &ListViewModel::invalidate);
+}
+
+QVariant ListViewModel::data(const QModelIndex& index, int /* role */) const
+{
+    auto ret = QSortFilterProxyModel::data(index, Qt::DisplayRole);
+    if (index.column() == chatLastMessageTimeColumn())
     {
-        return QSortFilterProxyModel::data(index, role);
+        auto datetime =
+            QDateTime::fromString(ret.toString(), "yyyy-MM-dd hh:mm:ss");
+        return datetime.toString("MM-dd hh:mm");
     }
-    else
-    {
-        qDebug() << "ListViewModel::data: role not supported";
-    }
-    return QVariant();
+    return ret;
 }
 
 void ListViewModel::setWsConnector(WebSocketConnector* wsConnector)
 {
     connect(wsConnector, &WebSocketConnector::newMsg, this,
             &ListViewModel::on_newMsg);
+    connect(this, &ListViewModel::sync, wsConnector,
+            &WebSocketConnector::on_sync);
+    emit sync();
 }
 
 QVector<MINIOICQ::UserInfo> ListViewModel::selectUser()
@@ -99,11 +133,12 @@ void ListViewModel::on_newMsg(QVector<MINIOICQ::Message>& messages)
     }
 }
 
-void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo> &chats)
+void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
 {
     qDebug() << "ListViewModel::on_newChat";
-    std::sort(chats.begin(), chats.end(), [](const ChatInfo& a, const ChatInfo& b)
-          { return a.chatId() < b.chatId(); });
+    std::sort(chats.begin(), chats.end(),
+              [](const ChatInfo& a, const ChatInfo& b)
+              { return a.chatId() < b.chatId(); });
     ListModel* model = qobject_cast<ListModel*>(sourceModel());
     QSqlDatabase db = model->database();
     QSqlTableModel chatModel(nullptr, db);
@@ -171,8 +206,9 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo> &chats)
 void ListViewModel::on_newUser(QVector<MINIOICQ::UserInfo>& users)
 {
     qDebug() << "ListViewModel::on_newUser";
-    std::sort(users.begin(), users.end(), [](const UserInfo& a, const UserInfo& b)
-          { return a.userId() < b.userId(); });
+    std::sort(users.begin(), users.end(),
+              [](const UserInfo& a, const UserInfo& b)
+              { return a.userId() < b.userId(); });
     ListModel* model = qobject_cast<ListModel*>(sourceModel());
     QSqlDatabase db = model->database();
     QSqlTableModel userModel(nullptr, db);

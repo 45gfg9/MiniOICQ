@@ -7,12 +7,17 @@
 #include "qtmaterialiconbutton.h"
 #include "qtmaterialscrollbar.h"
 
+#include "common/misc.h"
 #include "list_view.h"
 #include "list_viewmodel.h"
-#include "common/misc.h"
 
 namespace MINIOICQ
 {
+
+// void ListView::on_debug()
+// {
+//     qDebug() << "ListView::on_debug";
+// }
 
 static int constexpr kListViewWidth = 252;
 static int constexpr kListViewItemHeight = 72;
@@ -68,9 +73,9 @@ void ListViewItem::initUi()
     // vLayout->setContentsMargins(0, 0, 0, 0);
 
     // fill default data
-    _chatName->setText("chatName");
-    _lastTime->setText(QDateTime::currentDateTime().toString("hh:mm"));
-    _lastMsg->setText("lastMsg");
+    // _chatName->setText("chatName");
+    // _lastTime->setText(QDateTime::currentDateTime().toString("hh:mm"));
+    // _lastMsg->setText("lastMsg");
     setUnreadCount(_unRead, 0);
 }
 
@@ -150,7 +155,6 @@ void ListView::initUi()
     // {
     //     itemListLayout->addWidget(new ListViewItem(_itemList));
     // }
-
 }
 
 void ListView::initConnect()
@@ -159,57 +163,71 @@ void ListView::initConnect()
             &ListView::close);
 }
 
-void ListView::on_dataChanged()
+void ListView::on_dataChanged(QModelIndex /* topLeft */,
+                              QModelIndex /* bottomRight */,
+                              QVector<int> /* roles */)
 {
     qDebug() << "ListView::on_dataChanged";
-    if(_mappers.empty())
+    if (_mappers.empty())
     {
         qDebug() << "ListView::on_dataChanged: mappers is empty";
         return;
     }
-    auto *model = qobject_cast<ListViewModel*>(_mappers[0]->model());
+    auto* model = qobject_cast<ListViewModel*>(_mappers[0]->model());
+    // qDebug() << "ListView::on_dataChanged: " << model;
     // clear mapper
-    for(auto *mapper : _mappers)
+    for (auto* mapper : _mappers)
     {
         mapper->clearMapping();
         delete mapper;
     }
     _mappers.clear();
-    auto *layout = _itemList->layout();
+    auto* layout = _itemList->layout();
 
     // adjust item count
     auto modelItemNum = model->rowCount();
     auto layoutItemNum = layout->count();
-    if(modelItemNum > layoutItemNum)
+    if (modelItemNum > layoutItemNum)
     {
-        for(int i = layoutItemNum; i < modelItemNum; i++)
+        for (int i = layoutItemNum; i < modelItemNum; i++)
         {
             layout->addWidget(new ListViewItem(_itemList));
         }
     }
-    else if(modelItemNum < layoutItemNum)
+    else if (modelItemNum < layoutItemNum)
     {
-        for(int i = layoutItemNum; i > modelItemNum; i--)
+        for (int i = layoutItemNum; i > modelItemNum; i--)
         {
-            auto *item = layout->itemAt(i - 1)->widget();
+            auto* item = layout->itemAt(i - 1)->widget();
             layout->removeWidget(item);
             delete item;
         }
     }
 
     // refresh item
-    for(int i = 0; i < modelItemNum; i++)
+    for (int i = 0; i < modelItemNum; i++)
     {
-        auto *item = qobject_cast<ListViewItem*>(layout->itemAt(i)->widget());
-        auto *mapper = new QDataWidgetMapper(this);
+        auto* item = qobject_cast<ListViewItem*>(layout->itemAt(i)->widget());
+        auto* mapper = new QDataWidgetMapper(this);
         mapper->setModel(model);
         mapper->addMapping(item->_chatName, model->chatNameColumn(), "text");
-        mapper->addMapping(item->_lastTime, model->chatLastMessageTimeColumn(), "text");
-        mapper->addMapping(item->_lastMsg, model->chatLastMessageColumn(), "text");
-        mapper->addMapping(item->_unRead, model->chatUnreadMessageCountColumn(), "text");
+        mapper->addMapping(item->_lastTime, model->chatLastMessageTimeColumn(),
+                           "text");
+        mapper->addMapping(item->_lastMsg, model->chatLastMessageColumn(),
+                           "text");
+        mapper->addMapping(item->_unRead, model->chatUnreadMessageCountColumn(),
+                           "text");
         mapper->setCurrentIndex(i);
         _mappers.push_back(mapper);
+        item->setUnreadCount(item->_unRead, model->chatUnreadMessageCount(i));
+        item->_avatar->setImage(QImage::loadFromData(
+            model->data(model->index(i, model->chatAvatarColumn()))
+                .toByteArray()));
     }
+
+    // adjust height
+    this->_itemList->setFixedHeight(
+        this->_itemList->layout()->minimumSize().height());
 }
 
 void ListView::setModel(QAbstractItemModel* model)
@@ -217,10 +235,11 @@ void ListView::setModel(QAbstractItemModel* model)
     // connect
     connect(model, &QAbstractItemModel::dataChanged, this,
             &ListView::on_dataChanged);
+    // qDebug() << "ListView::setModel: " << model;
     auto mapper = new QDataWidgetMapper(this);
     mapper->setModel(model);
     _mappers.push_back(mapper);
-    on_dataChanged();
+    // on_dataChanged({}, {}, {});
 }
 
 void bindListView(ListView* view, QAbstractItemModel* model)

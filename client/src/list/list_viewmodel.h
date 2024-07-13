@@ -38,9 +38,15 @@ public:
 
 Q_SIGNALS:
     // to WebSocketConnector
+    void sync();
     void createChat(QVector<UserInfo> users);
 
 public slots:
+
+    // debug
+    void on_debug();
+    void invalidate();
+    
 
     // from ListView
     void on_itemList_clicked(const QVariant& chatId);
