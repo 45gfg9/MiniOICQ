@@ -1,6 +1,7 @@
-#include <QCryptographicHash>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
-#include "msgpack.hpp"
 #include "websocket.h"
 
 WebSocketConnector::WebSocketConnector(QObject* parent)
@@ -54,32 +55,20 @@ void WebSocketConnector::onDisconnected()
     _isConnected = false;
 }
 
-void WebSocketConnector::onMessageReceived(const QByteArray& message)
+void WebSocketConnector::onMessageReceived(const QString& message)
 {
-    msgpack::object_handle oh = msgpack::unpack(message.data(), message.size());
-    msgpack::object obj = oh.get();
+    QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
+    QJsonObject obj = doc.object();
+    QString action = obj["action"].toString();
 
-    if (obj.type != msgpack::type::MAP)
-    {
-        qDebug() << "Invalid message format";
-        return;
-    }
-
-    auto map = obj.as<std::map<std::string, msgpack::object>>();
-    auto action = map["action"].as<std::string>();
-
-    qDebug() << "Received message: action: " << action.c_str();
+    qDebug() << "Received message: action: " << action;
 
     if (action == "auth.login.success" || action == "auth.register.success")
     {
-        auto user_id = QString::fromStdString(map["user_id"].as<std::string>());
-        auto user_name =
-            QString::fromStdString(map["user_name"].as<std::string>());
-        auto password =
-            QString::fromStdString(map["password"].as<std::string>());
-        auto avatarData = map["avatar"].as<std::vector<uint8_t>>();
-        QByteArray byteArray(reinterpret_cast<const char*>(avatarData.data()),
-                             avatarData.size());
+        QString user_id = obj["user_id"].toString();
+        QString user_name = obj["user_name"].toString();
+        QString password = obj["password"].toString();
+        QByteArray byteArray = QByteArray::fromBase64(obj["avatar"].toString().toUtf8());
         QImage image;
         image.loadFromData(byteArray);
 
@@ -95,13 +84,13 @@ void WebSocketConnector::onMessageReceived(const QByteArray& message)
     }
     else if (action == "auth.login.fail")
     {
-        auto reason = QString::fromStdString(map["reason"].as<std::string>());
+        QString reason = obj["reason"].toString();
         qDebug() << "Login failed: " << reason;
         emit loginFailed(reason);
     }
     else
     {
-        qDebug() << "Unknown action" << action.c_str();
+        qDebug() << "Unknown action" << action;
     }
 }
 
@@ -113,40 +102,30 @@ void WebSocketConnector::on_login(const QString& userid,
         emit loginFailed("Not connected to server");
         return;
     }
-    msgpack::sbuffer sbuf;
-    msgpack::packer<msgpack::sbuffer> pk(&sbuf);
 
-    pk.pack_map(3);
-    pk.pack("action");
-    pk.pack("auth.login");
-    pk.pack("user_id");
-    pk.pack(userid.toStdString());
-    pk.pack("password");
-    pk.pack(password.toStdString());
-
-    _socket->sendBinaryMessage(QByteArray(sbuf.data(), sbuf.size()));
+    QJsonObject obj;
+    obj["action"] = "auth.login";
+    obj["user_id"] = userid;
+    obj["password"] = password;
+    QJsonDocument doc(obj);
+    _socket->sendTextMessage(doc.toJson());
 }
 
 void WebSocketConnector::on_reg(const QString& username,
                                 const QString& password)
 {
-    if(!_isConnected)
+    if (!_isConnected)
     {
         emit regFailed("Not connected to server");
         return;
     }
-    msgpack::sbuffer sbuf;
-    msgpack::packer<msgpack::sbuffer> pk(&sbuf);
 
-    pk.pack_map(3);
-    pk.pack("action");
-    pk.pack("auth.register");
-    pk.pack("user_name");
-    pk.pack(username.toStdString());
-    pk.pack("password");
-    pk.pack(password.toStdString());
-
-    _socket->sendBinaryMessage(QByteArray(sbuf.data(), sbuf.size()));
+    QJsonObject obj;
+    obj["action"] = "auth.register";
+    obj["user_name"] = username;
+    obj["password"] = password;
+    QJsonDocument doc(obj);
+    _socket->sendTextMessage(doc.toJson());
 }
 
 void WebSocketConnector::on_send(const MINIOICQ::AbstractMessage& msg)

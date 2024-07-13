@@ -42,7 +42,6 @@ LIBS += ../third_party/qt-material-widgets/components/libcomponents.a
 INCLUDEPATH += \
     ../third_party/qt-material-widgets/components/ \
     ../third_party/qt-material-widgets/components/lib \
-    ../third_party/msgpack/include \
 
 TARGET = client.exe
 PRE_TARGETDEPS += ../third_party/qt-material-widgets/components/libcomponents.a

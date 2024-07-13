@@ -4,9 +4,9 @@
 #include <QDateTime>
 #include <QFile>
 #include <QImage>
+#include <QJsonObject>
 #include <QTimeZone>
 #include <QtMultimedia>
-#include <msgpack.hpp>
 
 namespace MINIOICQ
 {
@@ -20,72 +20,93 @@ enum class MessageType
     Video,
 };
 
+QString MessageTypeToQString(MessageType type)
+{
+    switch (type)
+    {
+        case MessageType::Text:
+            return "Text";
+        case MessageType::Image:
+            return "Image";
+        case MessageType::File:
+            return "File";
+        case MessageType::Audio:
+            return "Audio";
+        case MessageType::Video:
+            return "Video";
+        default:
+            return "Unknown";
+    }
+}
+
 class AbstractMessage
 {
 public:
-    // sender is id or name
-    AbstractMessage(QString sender, MessageType type,
-                    QDateTime time = QDateTime::currentDateTime())
-        : _sender(sender), _type(type), _time(time)
+    // used for ws to construct a full-feature message
+    AbstractMessage(QString msgId, QString chatId, QString sender,
+                    MessageType type, QString content, QDateTime time)
+        : _msgId(msgId), _chatId(chatId), _sender(sender), _type(type),
+          _time(time), _content(content)
     {
     }
+
     virtual ~AbstractMessage() = default;
 
-    virtual void pack(uint64_t cid,
-                      msgpack::packer<msgpack::sbuffer>& pk) const = 0;
-    MessageType type() const { return _type; }
+    QJsonObject pack() const
+    {
+        QJsonObject obj;
+        obj["chat_id"] = _chatId;
+        obj["type"] = MessageTypeToQString(_type);
+        obj["content"] = _content;
+        return obj;
+    }
+    QString msgId() const { return _msgId; }
+    QString chatId() const { return _chatId; }
     QString sender() const { return _sender; }
+    MessageType type() const { return _type; }
     QDateTime time() const { return _time; }
+    QString content() const { return _content; }
     QImage avatar() const { return _avatar; }
+
     void setAvatar(QImage avatar) { _avatar = avatar; }
 
+protected:
+    AbstractMessage(QString sender, MessageType type)
+        : AbstractMessage("-1", "-1", sender, type, "",
+                          QDateTime::currentDateTime())
+    {
+    }
 
-private:
+    QString _msgId;
+    QString _chatId;
     QString _sender;
     MessageType _type;
     QDateTime _time;
     QImage _avatar;
+    QString _content;
 };
 
 class TextMessage : public AbstractMessage
 {
-    QString _text;
-
 public:
     explicit TextMessage(QString sender, const QString& text)
-        : AbstractMessage(sender, MessageType::Text), _text(text)
+        : AbstractMessage(sender, MessageType::Text)
     {
-    }
-
-    QString text() const { return _text; }
-
-    void pack(uint64_t cid,
-              msgpack::packer<msgpack::sbuffer>& pk) const override
-    {
-        pk.pack_map(3);
-        pk.pack("type");
-        pk.pack("text");
-
-        // TODO
+        _content = text;
     }
 };
 
 class ImageMessage : public AbstractMessage
 {
-    QImage _image;
-
 public:
     explicit ImageMessage(QString sender, const QImage& image)
-        : AbstractMessage(sender, MessageType::Image), _image(image)
+        : AbstractMessage(sender, MessageType::Image)
     {
-    }
-
-    QImage image() const { return _image; }
-
-    void pack(uint64_t cid,
-              msgpack::packer<msgpack::sbuffer>& pk) const override
-    {
-        // TODO
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        buffer.open(QIODevice::WriteOnly);
+        image.save(&buffer, "PNG");
+        _content = QString::fromUtf8(byteArray.toBase64());
     }
 };
 
@@ -104,12 +125,6 @@ public:
 
     QByteArray fileData() const { return _file; }
     QString fileName() const { return _fileName; }
-
-    void pack(uint64_t cid,
-              msgpack::packer<msgpack::sbuffer>& pk) const override
-    {
-        // TODO
-    }
 };
 
 class AudioMessage : public AbstractMessage
@@ -123,14 +138,6 @@ public:
     }
 
     QAudioBuffer audio() const { return _audio; }
-
-    void pack(uint64_t cid,
-              msgpack::packer<msgpack::sbuffer>& pk) const override
-    {
-        // _audio.data();
-        // _audio.format();
-        // TODO
-    }
 };
 
 class VideoMessage : public AbstractMessage
@@ -144,13 +151,6 @@ public:
     }
 
     QVideoFrame video() const { return _video; }
-
-    void pack(uint64_t cid,
-              msgpack::packer<msgpack::sbuffer>& pk) const override
-    {
-        // _video.bits(int plane);
-        // TODO
-    }
 };
 
 } // namespace MINIOICQ
