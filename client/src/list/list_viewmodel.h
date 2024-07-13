@@ -3,12 +3,12 @@
 
 #include <QSortFilterProxyModel>
 
-#include "list_model.h"
-#include "websocket/websocket.h"
 #include "chat/chat_manager.h"
 #include "common/chat_info.h"
-#include "common/user_info.h"
 #include "common/message.h"
+#include "common/user_info.h"
+#include "list_model.h"
+#include "websocket/websocket.h"
 
 namespace MINIOICQ
 {
@@ -45,12 +45,12 @@ public slots:
     // from ListView
     void on_itemList_clicked(const QVariant& chatId);
     void on_closeButton_clicked();
-    void on_invite(const QVector<UserInfo> &users);
+    void on_invite(const QVector<UserInfo>& users);
 
     // from WebSocketConnector
-    void on_newMsg(QVector<MINIOICQ::AbstractMessage> & messages);
-    void on_newChat(QVector<MINIOICQ::ChatInfo> chat);
-    void on_newUser(QVector < MINIOICQ::UserInfo> & users);
+    void on_newMsg(QVector<MINIOICQ::AbstractMessage>& messages);
+    void on_newChat(QVector<MINIOICQ::ChatInfo>& chat);
+    void on_newUser(QVector<MINIOICQ::UserInfo>& users);
 
 private:
     int _chatIdColumn = -1;

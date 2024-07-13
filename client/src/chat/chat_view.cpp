@@ -105,14 +105,14 @@ void ChatViewItem::initText(TextMessage& message)
     text->setStyleSheet("font-size: 14px;");
     auto height = QFontMetrics(text->font())
                       .boundingRect(0, 0, MessageWidth, 0, Qt::TextWordWrap,
-                                    message.text())
+                                    message.content())
                       .height();
     text->setFixedSize(MessageWidth, 2 * MessageVMargin + height);
     text->setWordWrap(true);
     text->setContentsMargins(MessageMargins);
 
     // data
-    text->setText(message.text());
+    text->setText(message.content());
 
     // set parent height
     _message->setFixedHeight(text->height());

@@ -14,6 +14,6 @@ QString themeStyleSheetLight = QString("background-color: white;") +
                                QString("color: %1;").arg(themeColor.name());
 QString themeStyleSheetDim = QString("color: gray;");
 
-void initTheme() { themePalette.setColor(QPalette::Background, Qt::white); }
+void initTheme() { themePalette.setColor(QPalette::Window, Qt::white); }
 
 } // namespace MINIOICQ

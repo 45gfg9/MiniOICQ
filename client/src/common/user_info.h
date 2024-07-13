@@ -8,14 +8,14 @@ namespace MINIOICQ {
 
 /**
  * @brief Auxiliary class to store user information to be used in websocket communication.
- * 
+ *
  */
 class UserInfo {
 public:
     UserInfo() = default;
     UserInfo(QString _userId, QString _username, QString _password, QImage _avatar)
     : _userId(_userId), _username(_username), _password(_password), _avatar(_avatar) {}
-    
+
     // data
     QString userId() const { return _userId; }
     QString username() const { return _username; }
