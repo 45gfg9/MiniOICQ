@@ -38,6 +38,8 @@ public slots:
 
     // from WebSocketConnector
     void on_newMsg(/* QVector<MINIOICQ::Message> & messages */);
+    void on_newChat(/* QVector<MINIOICQ::ChatInfo> chat */);
+    void on_newUser(QVector < MINIOICQ::UserInfo> & users);
 
 private:
     int _chatIdColumn = -1;
