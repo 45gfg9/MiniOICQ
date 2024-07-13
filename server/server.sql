@@ -1,6 +1,6 @@
 -- users(user_id, nick, pwd_hash, avatar, register_time, last_seen, is_online)
 CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid INTEGER PRIMARY KEY AUTOINCREMENT,
     nick TEXT NOT NULL,
     pwd_hash TEXT NOT NULL,
     avatar BLOB,

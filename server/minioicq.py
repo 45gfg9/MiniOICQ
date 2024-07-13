@@ -114,7 +114,7 @@ async def auth_login(ws: WebSocketServerProtocol, req: dict):
     user_id = req['user_id']
     password = req['password']
 
-    if (row := conn.execute('SELECT nick, pwd_hash, avatar FROM users WHERE user_id = ?', (user_id,)).fetchone()) is None:
+    if (row := conn.execute('SELECT nick, pwd_hash, avatar FROM users WHERE uid = ?', (user_id,)).fetchone()) is None:
         return {'action': 'auth.login.fail', 'reason': 'User not found'}
     else:
         user_name, pwd, avatar = row
@@ -131,7 +131,7 @@ async def auth_login(ws: WebSocketServerProtocol, req: dict):
 
     if ph.check_needs_rehash(pwd):
         new_pwd = ph.hash(password)
-        conn.execute('UPDATE users SET pwd_hash = ? WHERE user_id = ?', (new_pwd, user_id))
+        conn.execute('UPDATE users SET pwd_hash = ? WHERE uid = ?', (new_pwd, user_id))
         conn.commit()
 
     if user_id in app.users:
@@ -160,7 +160,7 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
 
     ph = argon2.PasswordHasher()
     pwd_hash = ph.hash(password)
-    user_id, = conn.execute('INSERT INTO users (nick, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING user_id', (user_name, pwd_hash, avatar)).fetchone()
+    user_id, = conn.execute('INSERT INTO users (nick, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING uid', (user_name, pwd_hash, avatar)).fetchone()
     conn.commit()
 
     app.users[user_id] = ws.id

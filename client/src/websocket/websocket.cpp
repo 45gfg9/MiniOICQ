@@ -11,7 +11,7 @@ WebSocketConnector::WebSocketConnector(QObject* parent)
             &WebSocketConnector::onConnected);
     connect(_socket, &QWebSocket::disconnected, this,
             &WebSocketConnector::onDisconnected);
-    connect(_socket, &QWebSocket::binaryMessageReceived, this,
+    connect(_socket, &QWebSocket::textMessageReceived, this,
             &WebSocketConnector::onMessageReceived);
 }
 
@@ -98,6 +98,7 @@ void WebSocketConnector::onMessageReceived(const QString& message)
 void WebSocketConnector::on_login(const QString& userid,
                                   const QString& password)
 {
+    qDebug() << "Login message";
     if (!_isConnected)
     {
         emit loginFailed("Not connected to server");
