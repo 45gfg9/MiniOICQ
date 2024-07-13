@@ -54,9 +54,10 @@ void ListModel::refresh()
     setHeaderData(0, Qt::Horizontal, "cid");
     setHeaderData(1, Qt::Horizontal, "name");
     setHeaderData(2, Qt::Horizontal, "avatar");
-    setHeaderData(3, Qt::Horizontal, "last_message");
-    setHeaderData(4, Qt::Horizontal, "last_send_time");
-    setHeaderData(5, Qt::Horizontal, "un_read_count");
+    setHeaderData(3, Qt::Horizontal, "last_mtype");
+    setHeaderData(4, Qt::Horizontal, "last_message");
+    setHeaderData(5, Qt::Horizontal, "last_send_time");
+    setHeaderData(6, Qt::Horizontal, "un_read_count");
 }
 
 } // namespace MINIOICQ

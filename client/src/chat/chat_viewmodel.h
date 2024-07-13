@@ -17,6 +17,7 @@ public:
     ~ChatViewModel();
 
     int midColumn() const { return _midColumn; }
+    int mtypeColumn() const { return _mtypeColumn; }
     int messageColumn() const { return _messageColumn; }
     int sendTimeColumn() const {return _sendTimeColumn; }
     int senderIdColumn() const { return _senderIdColumn; }
@@ -35,6 +36,7 @@ public slots:
 private:
 // mid, message, send_time, sender_id, name, avatar
     int _midColumn = -1;      // INT
+    int _mtypeColumn = -1;    // VARCHAR
     int _messageColumn = -1;  // BLOB
     int _sendTimeColumn = -1; // TIMESTAMP
     int _senderIdColumn = -1; // INT

@@ -15,6 +15,7 @@ void ChatViewModel::setSourceModel(ChatModel* model)
     QSortFilterProxyModel::setSourceModel(model);
 
     _midColumn = model->record().indexOf("mid");
+    _mtypeColumn = model->record().indexOf("mtype");
     _messageColumn = model->record().indexOf("message");
     _sendTimeColumn = model->record().indexOf("send_time");
     _senderIdColumn = model->record().indexOf("sender_id");

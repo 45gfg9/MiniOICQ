@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS chats (
 CREATE TABLE IF NOT EXISTS messages (
     cid INT NOT NULL REFERENCES chats(cid),
     mid INT NOT NULL,
-    message TEXT NOT NULL,
+    mtype VARCHAR NOT NULL,
+    message BLOB NOT NULL,
     send_time TIMESTAMP NOT NULL,
     uid INT NOT NULL REFERENCES users(uid),
     PRIMARY KEY (cid, mid)
@@ -43,6 +44,7 @@ WITH latest_messages AS (
         c.cid,
         c.name,
         c.avatar,
+        m.mtype,
         m.message,
         m.send_time,
         RANK() OVER (PARTITION BY c.cid ORDER BY m.send_time DESC) AS rank
@@ -66,6 +68,7 @@ SELECT
     lm.cid AS cid,
     lm.name AS name,
     lm.avatar AS avatar,
+    lm.mtype AS last_mtype,
     lm.message AS last_message,
     lm.send_time AS last_send_time,
     COALESCE(mlv.msg_count_after_last_view, 0) AS un_read_count

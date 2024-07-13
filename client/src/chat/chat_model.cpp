@@ -16,7 +16,7 @@ ChatModel::ChatModel(QSqlDatabase db, QVariant chatId, QObject* parent)
     qDebug() << "Create view " + _viewName;
     QSqlQuery createView(_db);
     createView.prepare("CREATE VIEW " + _viewName + " AS "
-                        "SELECT mid, message, send_time, sender_id, name, avatar"
+                        "SELECT mid, mtype, message, send_time, sender_id, name, avatar"
                         "FROM messages JOIN users ON messages.sender_id = users.userId"
                         "WHERE cid = :chatId"
                         "ORDER BY send_time ASC");
@@ -51,11 +51,12 @@ void ChatModel::refresh()
 {
     setQuery("SELECT * FROM " + _viewName, _db);
     setHeaderData(0, Qt::Horizontal, "mid");
-    setHeaderData(1, Qt::Horizontal, "message");
-    setHeaderData(2, Qt::Horizontal, "send_time");
-    setHeaderData(3, Qt::Horizontal, "sender_id");
-    setHeaderData(4, Qt::Horizontal, "name");
-    setHeaderData(5, Qt::Horizontal, "avatar");
+    setHeaderData(1, Qt::Horizontal, "mtype");
+    setHeaderData(2, Qt::Horizontal, "message");
+    setHeaderData(3, Qt::Horizontal, "send_time");
+    setHeaderData(4, Qt::Horizontal, "sender_id");
+    setHeaderData(5, Qt::Horizontal, "name");
+    setHeaderData(6, Qt::Horizontal, "avatar");
 }
 
 } // namespace MINIOICQ
