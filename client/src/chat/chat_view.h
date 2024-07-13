@@ -5,6 +5,7 @@
 #include "qtmaterialavatar.h"
 #include <QAbstractItemModel>
 #include <QLabel>
+#include <QMargins>
 #include <QWidget>
 
 namespace MINIOICQ
@@ -22,9 +23,12 @@ public:
     static int constexpr NameHeight = 18;
     static int constexpr MessagePadding = 40;
     static int constexpr MessageGap = 8;
-    static int constexpr MessageWidth = Width - HMargin * 2 - AvatarSize - MessagePadding;
+    static int constexpr MessageWidth =
+        Width - HMargin * 2 - AvatarSize - MessagePadding;
     static int constexpr MessageHMargin = 8;
     static int constexpr MessageVMargin = 10;
+
+    static QMargins const MessageMargins;
 
     ChatViewItem(AbstractMessage& message, QWidget* parent = 0);
 

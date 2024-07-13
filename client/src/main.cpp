@@ -115,7 +115,9 @@ int main(int argc, char* argv[])
         }
     */
     qDebug() << "test";
-    MINIOICQ::TextMessage text("me", "hello world");
+    MINIOICQ::TextMessage text("me",
+                               "a very very very very long long long message a "
+                               "very very very very long long long message");
     QDirIterator it(":", QDirIterator::Subdirectories);
     while (it.hasNext())
     {
@@ -123,7 +125,6 @@ int main(int argc, char* argv[])
     }
     text.setAvatar(QImage(":/testImage.jpg"));
     MINIOICQ::ChatViewItem chatViewItem(text);
-    chatViewItem.show();
 
     return a.exec();
 }

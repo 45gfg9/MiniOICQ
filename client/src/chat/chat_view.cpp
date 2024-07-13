@@ -7,6 +7,10 @@
 namespace MINIOICQ
 {
 
+QMargins const ChatViewItem::MessageMargins{
+    ChatViewItem::MessageHMargin, ChatViewItem::MessageVMargin,
+    ChatViewItem::MessageHMargin, ChatViewItem::MessageVMargin};
+
 ChatViewItem::ChatViewItem(AbstractMessage& message, QWidget* parent)
     : QWidget(parent)
 {
@@ -25,6 +29,7 @@ void ChatViewItem::initUi(AbstractMessage& message)
     auto vLayout = new QVBoxLayout;
     vLayout->addWidget(_name);
     vLayout->addWidget(_message);
+    // vLayout->addStretch();
     layout->addWidget(_avatar);
     layout->addLayout(vLayout);
     _time->setGeometry(Width - HMargin - MessagePadding, VMargin, 0, 0);
@@ -51,7 +56,10 @@ void ChatViewItem::initUi(AbstractMessage& message)
     _name->setFixedSize(MessageWidth + MessagePadding, NameHeight);
     _name->setContentsMargins(zeroMargins);
     // message
-    _message->setStyleSheet(themeStyleSheetDeep + "border-radius: 8px;");
+    _message->setStyleSheet(themeStyleSheetDeep +
+                            "border-radius: 8px; font-size: 14px;");
+    _message->setFixedWidth(MessageWidth);
+    _message->setContentsMargins(zeroMargins);
     // time
     _time->setStyleSheet("font-size: 10px; color: gray;");
     _time->setText(message.time().toString("hh:mm"));
@@ -80,19 +88,34 @@ void ChatViewItem::initUi(AbstractMessage& message)
         default:
             break;
     }
-    this->setFixedHeight(2 * HMargin + NameHeight + 2 * MessageHMargin +
-                         _message->height());
+    this->setFixedHeight(2 * VMargin + NameHeight + _message->height());
+    // qDebug() << "this height" << this->height();
+    // qDebug() << "name height" << _name->height();
+    // qDebug() << "vlayout size" << vLayout->minimumSize().height();
+    // qDebug() << "message height" << _message->height();
 }
 
 void ChatViewItem::initText(TextMessage& message)
 {
     QLabel* text = new QLabel(_message);
-    text->setText(message.text());
-    text->setWordWrap(true);
+
+    // style
+    // use QFontMetrics to calculate height
+    // https://stackoverflow.com/questions/37671839/how-to-use-qfontmetrics-boundingrect-to-measure-size-of-multilne-message/37674690#37674690
     text->setStyleSheet("font-size: 14px;");
-    // text->setFixedSize(MessageWidth - 2 * MessageHMargin, 0);
-    text->setContentsMargins(MessageHMargin, MessageVMargin, MessageHMargin,
-                             MessageVMargin);
+    auto height = QFontMetrics(text->font())
+                      .boundingRect(0, 0, MessageWidth, 0, Qt::TextWordWrap,
+                                    message.text())
+                      .height();
+    text->setFixedSize(MessageWidth, 2 * MessageVMargin + height);
+    text->setWordWrap(true);
+    text->setContentsMargins(MessageMargins);
+
+    // data
+    text->setText(message.text());
+
+    // set parent height
+    _message->setFixedHeight(text->height());
 }
 
 void ChatViewItem::initImage(ImageMessage& message) {}

@@ -54,4 +54,14 @@ void ListViewModel::on_newMsg(/* QVector<MINIOICQ::Message> & messages */)
     qDebug() << "ListViewModel::on_newMsg";
 }
 
+void ListViewModel::on_newChat(/* QVector<MINIOICQ::ChatInfo> chat */)
+{
+    qDebug() << "ListViewModel::on_newChat";
+}
+
+void ListViewModel::on_newUser(QVector<MINIOICQ::UserInfo>& users)
+{
+    qDebug() << "ListViewModel::on_newUser";
+}
+
 } // namespace MINIOICQ
