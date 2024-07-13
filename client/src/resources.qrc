@@ -3,6 +3,7 @@
         <file alias="minioicq.svg">../resources/minioicq.svg</file>
         <file alias="close.svg">../resources/close.svg</file>
         <file alias="menu.svg">../resources/menu.svg</file>
+        <file alias="chat.svg">../resources/chat.svg</file>
         <file alias="testImage.jpg">../resources/testImage.jpg</file>
     </qresource>
 </RCC>

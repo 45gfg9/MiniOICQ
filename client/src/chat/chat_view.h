@@ -14,6 +14,7 @@
 #include "qtmaterialappbar.h"
 #include "qtmaterialscrollbar.h"
 #include "qtmaterialraisedbutton.h"
+#include "qtmaterialiconbutton.h"
 
 #include "common/message.h"
 
@@ -64,12 +65,16 @@ class ChatView: public QWidget
 public:
     ChatView(QWidget* parent = 0);
 
+    static int constexpr Width = ChatViewItem::Width;
     static int constexpr Height = 540;
     static int constexpr ButtonWidth = 78;
     static int constexpr ButtonHeight = 26;
     static int constexpr ButtonGap = 8;
     static int constexpr ButtonHMargin = 20;
     static int constexpr ButtonVMargin = 8;
+    static int constexpr AppBarHeight = 44;
+    static int constexpr InputHeight = 150;
+    static int constexpr ListHeight = Height - AppBarHeight - InputHeight;
 
 private:
     void initUi();

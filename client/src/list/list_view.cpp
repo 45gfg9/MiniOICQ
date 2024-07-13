@@ -119,11 +119,11 @@ void ListView::initUi()
     this->setFixedSize(kListViewWidth + 2,
                        kListViewHeight); // can't understand this border 1
     this->layout()->setSpacing(0);
-    this->layout()->setContentsMargins(0, 0, 0, 0);
+    this->layout()->setContentsMargins(zeroMargins);
     // this->setAttribute(Qt::WA_DeleteOnClose);
     // this->setWindowFlag(Qt::FramelessWindowHint);
     // appBar
-    QLabel* appBarTitle = new QLabel("Inbox");
+    QLabel* appBarTitle = new QLabel("Inbox", _appBar);
     appBarTitle->setStyleSheet("color: white; font-size: 18px;");
     QtMaterialIconButton* button =
         new QtMaterialIconButton(QIcon(":/menu.svg"), this);
@@ -140,7 +140,7 @@ void ListView::initUi()
     // itemList
     _itemList->setFixedWidth(kListViewWidth);
     // itemListLayout
-    itemListLayout->setContentsMargins(0, 0, 0, 0);
+    itemListLayout->setContentsMargins(zeroMargins);
     // clostButton
     _closeButton->setOffset(16, 16);
     // _closeButton->setMini(true);

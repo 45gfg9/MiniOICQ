@@ -143,7 +143,7 @@ void ChatView::initUi()
     _closeButton = new QtMaterialRaisedButton(this);
 
     // arrange
-    auto chatLayout = new QVBoxLayout(_chatList);
+    auto chatListLayout = new QVBoxLayout(_chatList);
     _chatArea->setWidget(_chatList);
     _splitter->addWidget(_appBar);
     _splitter->addWidget(_chatArea);
@@ -151,23 +151,77 @@ void ChatView::initUi()
 
     // style
     this->setWindowFlag(Qt::Window);
-    this->setFixedSize(ChatViewItem::Width, Height);
+    this->setFixedSize(Width, Height);
+    this->setPalette(themePalette);
     _splitter->setOrientation(Qt::Vertical);
+    _splitter->setFixedSize(Width, Height);
+    // appbar
+    QLabel* title = new QLabel("ChatName", _appBar);
+    title->setStyleSheet("color: white; font-size: 16px;");
+    QtMaterialIconButton* button =
+        new QtMaterialIconButton(QIcon(":/chat.svg"), this);
+    button->setIconSize(QSize(24, 24));
+    button->setColor(Qt::white);
+    button->setFixedWidth(42);
+    _appBar->setFixedSize(Width, AppBarHeight);
+    _appBar->appBarLayout()->addWidget(button);
+    _appBar->appBarLayout()->addWidget(title);
+    _appBar->appBarLayout()->addStretch(1);
+    // chatArea
+    // _chatArea->setWidgetResizable(false);
+    _chatArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _chatArea->setVerticalScrollBar(new QtMaterialScrollBar);
+    // chatList
+    _chatList->setFixedWidth(Width);
+    // chatListLayout
+    chatListLayout->setContentsMargins(zeroMargins);
+    // textEdit
+    _input->setStyleSheet("font-size: 14px;");
+    _input->setFixedWidth(Width);
+    _input->setMinimumHeight(InputHeight);
+    _input->setVerticalScrollBar(new QtMaterialScrollBar);
     // button
     _sendButton->setFixedSize(ButtonWidth, ButtonHeight);
-    _sendButton->setGeometry(ChatViewItem::Width - ButtonHMargin - ButtonWidth,
-                             Height - ButtonVMargin - ButtonVMargin -
-                                 ButtonHeight,
+    auto buttonX =
+        ChatViewItem::Width - ButtonHMargin - 2 * ButtonWidth - ButtonGap;
+    auto buttonY = Height - ButtonVMargin - ButtonHeight;
+    _sendButton->setGeometry(buttonX + ButtonWidth + ButtonGap, buttonY,
                              ButtonWidth, ButtonHeight);
     _sendButton->setStyleSheet("font-size: 14px;");
     _sendButton->setText("Send");
     _closeButton->setFixedSize(ButtonWidth, ButtonHeight);
-    _closeButton->setGeometry(ChatViewItem::Width - ButtonHMargin -
-                                  2 * ButtonWidth - ButtonGap,
-                              Height - ButtonVMargin - ButtonVMargin -
-                                  ButtonHeight,
-                              ButtonWidth, ButtonHeight);
+    _closeButton->setGeometry(buttonX, buttonY, ButtonWidth, ButtonHeight);
     _closeButton->setText("Close");
+
+    // fill default data
+    _input->setText(
+        "<p>The distinction between the subjects of syntax and semantics "
+        "has its origin in the study of natural languages.</p><p>The "
+        "distinction between the subjects of syntax and semantics has its "
+        "origin in the study of natural languages.</p><p>The distinction "
+        "between the subjects of syntax and semantics has its origin in "
+        "the study of natural languages.</p><p>The distinction between the "
+        "subjects of syntax and semantics has its origin in the study of "
+        "natural languages.</p><p>The distinction between the subjects of "
+        "syntax and semantics has its origin in the study of natural "
+        "languages.</p><p>The distinction between the subjects of syntax "
+        "and semantics has its origin in the study of natural "
+        "languages.</p><p>The distinction between the subjects of syntax "
+        "and semantics has its origin in the study of natural "
+        "languages.</p><p>The distinction between the subjects of syntax "
+        "and semantics has its origin in the study of natural "
+        "languages.</p>");
+    for (int i = 0; i < 10; i++)
+    {
+        MINIOICQ::TextMessage message(
+            "me", "a very very very very long long long message a "
+                  "very very very very long long long message");
+        message.setAvatar(QImage(":/testImage.jpg"));
+        auto item = new ChatViewItem(message, _chatList);
+        chatListLayout->addWidget(item);
+    }
+    // set parent height
+    _chatList->setFixedHeight(_chatList->layout()->minimumSize().height());
 }
 
 void ChatView::initConnect() {}
