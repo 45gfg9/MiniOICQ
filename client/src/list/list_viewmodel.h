@@ -36,11 +36,16 @@ public:
 
     QVector<MINIOICQ::UserInfo> selectUser();
 
+Q_SIGNALS:
+    // send to websocket
+    void createChat(QVector<UserInfo> users);
+
 public slots:
 
     // from ListView
     void on_itemList_clicked(const QVariant& chatId);
     void on_closeButton_clicked();
+    void on_invite(const QVector<UserInfo> &users);
 
     // from WebSocketConnector
     void on_newMsg(QVector<MINIOICQ::AbstractMessage> & messages);

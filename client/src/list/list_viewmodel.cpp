@@ -70,6 +70,12 @@ void ListViewModel::on_closeButton_clicked()
     qDebug() << "ListViewModel::on_closeButton_clicked";
 }
 
+void ListViewModel::on_invite(const QVector<UserInfo>& users)
+{
+    qDebug() << "ListViewModel::on_invite";
+    emit createChat(users);
+}
+
 void ListViewModel::on_newMsg(QVector<MINIOICQ::AbstractMessage> & messages)
 {
     qDebug() << "ListViewModel::on_newMsg";
