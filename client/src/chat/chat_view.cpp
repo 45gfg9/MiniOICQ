@@ -262,9 +262,15 @@ void ChatView::initUi()
     _chatList->setFixedHeight(_chatList->layout()->minimumSize().height());
 }
 
-void ChatView::initConnect() {}
+void ChatView::initConnect() {
+    // from component
+    connect(_sendButton, &QtMaterialRaisedButton::clicked, this,
+            &ChatView::on_sendButton_clicked);
+    connect(_closeButton, &QtMaterialRaisedButton::clicked, this,
+            &ChatView::on_closeButton_clicked);
+}
 
-void ChatView::update()
+void ChatView::on_dataChanged()
 {
     qDebug() << "ChatView::update";
     if (_mappers.empty())
@@ -335,15 +341,35 @@ void ChatView::setModel(QAbstractItemModel* model)
         qDebug() << "ChatView::setModel: mappers is not empty";
         return;
     }
-    connect(model, &QAbstractItemModel::dataChanged, this, &ChatView::update);
+
+    // convert
+    auto chatViewModel = qobject_cast<ChatViewModel*>(model);
+
+    // connect
+    connect(chatViewModel, &ChatViewModel::dataChanged, this, &ChatView::on_dataChanged);
+    connect(this, &ChatView::send, chatViewModel, &ChatViewModel::on_send);
+
+    // bind
     auto initMapper = new QDataWidgetMapper(this);
     initMapper->setModel(model);
     _mappers.push_back(initMapper);
     update();
 }
 
-void ChatView::on_sendButton_clicked() {}
+void ChatView::on_sendButton_clicked() {
+    qDebug() << "ChatView::on_sendButton_clicked";
+    Message message(QString(), QString(), QString(), "text/plain",
+                    _input->toPlainText().toUtf8(), QDateTime::currentDateTime());
+    emit send(message);
+}
 
-void bindChatView(ChatView* view, QAbstractItemModel* model) {}
+void ChatView::on_closeButton_clicked() {
+    qDebug() << "ChatView::on_closeButton_clicked";
+    emit closeChat();
+}
+
+void bindChatView(ChatView* view, QAbstractItemModel* model) {
+    view->setModel(model);
+}
 
 } // namespace MINIOICQ

@@ -37,7 +37,7 @@ public:
     QVector<MINIOICQ::UserInfo> selectUser();
 
 Q_SIGNALS:
-    // send to websocket
+    // to WebSocketConnector
     void createChat(QVector<UserInfo> users);
 
 public slots:

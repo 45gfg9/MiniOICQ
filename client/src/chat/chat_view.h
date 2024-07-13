@@ -94,14 +94,18 @@ private:
     // event
 
 public slots:
-    void update();
+    void on_dataChanged();
 
 private slots:
     // from component
     void on_sendButton_clicked();
+    void on_closeButton_clicked();
 
 Q_SIGNALS:
+
+    // to ChatViewModel
     void send(const Message& message);
+    void closeChat();
 
 private:
     // bind

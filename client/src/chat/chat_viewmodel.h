@@ -4,6 +4,8 @@
 #include <QSortFilterProxyModel>
 
 #include "chat_model.h"
+#include "common/message.h"
+#include "websocket/websocket.h"
 
 namespace MINIOICQ
 {
@@ -27,11 +29,20 @@ public:
 
     void setSourceModel(ChatModel* model);
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    void setWsConnector(WebSocketConnector* wsConnector);
 
     // from ListViewModel
     void update();
 
 public slots:
+
+    // from ChatView
+    void on_send(const Message& msg);
+
+Q_SIGNALS:
+
+    // to WebSocketConnector
+    void send(const Message& msg);
 
 private:
 // mid, message, send_time, sender_id, name, avatar
