@@ -1,6 +1,6 @@
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
 
 #include "websocket.h"
 
@@ -68,7 +68,8 @@ void WebSocketConnector::onMessageReceived(const QString& message)
         QString user_id = obj["user_id"].toString();
         QString user_name = obj["user_name"].toString();
         QString password = obj["password"].toString();
-        QByteArray byteArray = QByteArray::fromBase64(obj["avatar"].toString().toUtf8());
+        QByteArray byteArray =
+            QByteArray::fromBase64(obj["avatar"].toString().toUtf8());
         QImage image;
         image.loadFromData(byteArray);
 
@@ -127,6 +128,8 @@ void WebSocketConnector::on_reg(const QString& username,
     QJsonDocument doc(obj);
     _socket->sendTextMessage(doc.toJson());
 }
+
+void WebSocketConnector::on_view() { qDebug() << "View message"; }
 
 void WebSocketConnector::on_send(const MINIOICQ::AbstractMessage& msg)
 {

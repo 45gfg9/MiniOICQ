@@ -20,7 +20,7 @@ enum class MessageType
     Video,
 };
 
-QString MessageTypeToQString(MessageType type)
+static inline QString MessageTypeToQString(MessageType type)
 {
     switch (type)
     {
