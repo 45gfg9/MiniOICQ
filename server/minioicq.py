@@ -146,7 +146,6 @@ async def auth_login(ws: WebSocketServerProtocol, req: dict):
         'user_name': user_name,
         'password': password,
         'avatar': avatar,
-        'users': get_all_users(),
     }
 
 
@@ -171,7 +170,6 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
         'user_name': user_name,
         'password': password,
         'avatar': base64.b64encode(avatar).decode(),
-        'users': get_all_users(),
     }
 
 
@@ -270,12 +268,20 @@ async def avatar_set(ws: WebSocketServerProtocol, req: dict):
     }
 
 
-def get_all_users():
-    return [{
-        'user_id': user_id,
-        'user_name': user_name,
-        'avatar': base64.b64encode(avatar).decode(),
-    } for user_id, user_name, avatar in conn.execute('SELECT uid, nick, avatar FROM users').fetchall()]
+@app.route('user.sync')
+async def user_sync(ws: WebSocketServerProtocol, req: dict):
+    if app.users.inverse.get(ws.id) is None:
+        print(f'Unauthenticated user {ws.id} tried to sync users')
+        return
+
+    return {
+        'action': 'user.sync',
+        'users': [{
+            'user_id': user_id,
+            'user_name': user_name,
+            'avatar': base64.b64encode(avatar).decode(),
+        } for user_id, user_name, avatar in conn.execute('SELECT uid, nick, avatar FROM users').fetchall()]
+    }
 
 
 with sqlite3.connect(DB_FILE) as conn:

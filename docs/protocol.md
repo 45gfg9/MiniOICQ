@@ -21,9 +21,6 @@ Server should respond with a success.
     "user_name": "[user name]",
     "password": "[user's password]",
     "avatar": "[generated avatar]",
-    "users": [{
-        ...
-    }]
 }
 ```
 
@@ -48,9 +45,6 @@ Server should respond with a success or an error if the password is incorrect.
     "user_name": "[user name]",
     "password": "[user's password]",
     "avatar": "[avatar]",
-    "users": [{
-        ...
-    }]
 }
 ```
 
@@ -73,6 +67,27 @@ The client should send a logout message to the server and wait for the server to
 ```json
 {
     "action": "auth.logout",
+}
+```
+
+## Sync Users
+
+```json
+{
+    "action": "user.sync",
+}
+```
+
+```json
+{
+    "action": "user.sync",
+    "users": [
+        {
+            "user_id": "[user_id]",
+            "user_name": "[nick]",
+            "avatar": "[avatar]",
+        },
+    ],
 }
 ```
 

@@ -4,8 +4,8 @@
 #include <QImage>
 #include <QWebSocket>
 
-#include "common/message.h"
 #include "common/chat_info.h"
+#include "common/message.h"
 #include "common/user_info.h"
 
 class WebSocketConnector : public QObject
@@ -30,6 +30,8 @@ public slots:
     void on_login(const QString& userid, const QString& password);
     void on_reg(const QString& username, const QString& password);
 
+    void on_sync();
+
     void on_view();
     void on_send(const MINIOICQ::Message& msg);
 
@@ -45,7 +47,7 @@ signals:
     // to ListViewModel
     void newMsg(QVector<MINIOICQ::Message>& messages);
     void newChat(QVector<MINIOICQ::ChatInfo>& chat);
-    void newUser(QVector<MINIOICQ::UserInfo>& users);
+    void syncUser(QVector<MINIOICQ::UserInfo>& users);
 
 private:
     QWebSocket* _socket;

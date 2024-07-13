@@ -73,6 +73,18 @@ void WebSocketConnector::onMessageReceived(const QString& message)
         QImage image;
         image.loadFromData(byteArray);
 
+        MINIOICQ::UserInfo info(user_id, user_name, password, image);
+        if (action == "auth.login.success")
+        {
+            emit loginSuccess(info);
+        }
+        else
+        {
+            emit regSuccess(info);
+        }
+    }
+    else if (action == "user.sync")
+    {
         QJsonArray users = obj["users"].toArray();
         QVector<MINIOICQ::UserInfo> userInfos;
         for (const auto& user : users)
@@ -86,18 +98,7 @@ void WebSocketConnector::onMessageReceived(const QString& message)
             img.loadFromData(avatar);
             userInfos.push_back(MINIOICQ::UserInfo(id, name, "", img));
         }
-
-        MINIOICQ::UserInfo info(user_id, user_name, password, image);
-        if (action == "auth.login.success")
-        {
-            emit loginSuccess(info);
-        }
-        else
-        {
-            emit regSuccess(info);
-        }
-
-        emit newUser(userInfos);
+        emit syncUser(userInfos);
     }
     else if (action == "auth.login.fail")
     {
@@ -186,7 +187,11 @@ void WebSocketConnector::on_reg(const QString& username,
     _socket->sendTextMessage(doc.toJson());
 }
 
-void WebSocketConnector::on_view() { qDebug() << "View message"; }
+void WebSocketConnector::on_view()
+{
+    qDebug() << "View message";
+    // TODO
+}
 
 void WebSocketConnector::on_send(const MINIOICQ::Message& msg)
 {
@@ -196,6 +201,21 @@ void WebSocketConnector::on_send(const MINIOICQ::Message& msg)
         return;
     }
 
-    QJsonDocument doc({{"action", "message.send"}, {"message", msg.pack()}});
+    QJsonDocument doc({
+        {"action", "message.send"},
+        {"message", msg.pack()},
+    });
+    _socket->sendTextMessage(doc.toJson());
+}
+
+void WebSocketConnector::on_sync()
+{
+    if (!_isConnected)
+    {
+        emit regFailed("Not connected to server");
+        return;
+    }
+
+    QJsonDocument doc(QJsonObject({{"action", "user.sync"}}));
     _socket->sendTextMessage(doc.toJson());
 }
