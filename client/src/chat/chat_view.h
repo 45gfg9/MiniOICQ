@@ -1,12 +1,21 @@
 #ifndef CHAT_VIEW_H
 #define CHAT_VIEW_H
 
-#include "common/message.h"
-#include "qtmaterialavatar.h"
 #include <QAbstractItemModel>
 #include <QLabel>
 #include <QMargins>
 #include <QWidget>
+#include <QSplitter>
+#include <QTextEdit>
+#include <QScrollArea>
+#include <QVBoxLayout>
+
+#include "qtmaterialavatar.h"
+#include "qtmaterialappbar.h"
+#include "qtmaterialscrollbar.h"
+#include "qtmaterialraisedbutton.h"
+
+#include "common/message.h"
 
 namespace MINIOICQ
 {
@@ -48,8 +57,47 @@ private:
     QLabel* _time;
 };
 
-class ChatView
+class ChatView: public QWidget
 {
+    Q_OBJECT
+
+public:
+    ChatView(QWidget* parent = 0);
+
+    static int constexpr Height = 540;
+    static int constexpr ButtonWidth = 78;
+    static int constexpr ButtonHeight = 26;
+    static int constexpr ButtonGap = 8;
+    static int constexpr ButtonHMargin = 20;
+    static int constexpr ButtonVMargin = 8;
+
+private:
+    void initUi();
+    void initConnect();
+    void setModel(QAbstractItemModel* model);
+
+    // event
+
+public slots:
+
+private slots:
+    // from component
+    void on_sendButton_clicked();
+
+Q_SIGNALS:
+    void send(const AbstractMessage& message);
+
+private:
+    // components
+    QSplitter* _splitter;
+    QtMaterialAppBar* _appBar;
+    QScrollArea* _chatArea;
+    QWidget* _chatList;
+    QTextEdit* _input;
+    QtMaterialRaisedButton* _sendButton;
+    QtMaterialRaisedButton* _closeButton;
+
+    friend void bindChatView(ChatView* view, QAbstractItemModel* model);
 };
 
 void bindChatView(ChatView* view, QAbstractItemModel* model);

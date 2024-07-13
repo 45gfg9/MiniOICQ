@@ -125,6 +125,9 @@ int main(int argc, char* argv[])
     }
     text.setAvatar(QImage(":/testImage.jpg"));
     MINIOICQ::ChatViewItem chatViewItem(text);
+    MINIOICQ::ChatView chatView;
+    qDebug() << "show chatView";
+    chatView.show();
 
     return a.exec();
 }

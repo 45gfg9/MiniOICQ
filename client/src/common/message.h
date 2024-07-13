@@ -39,11 +39,10 @@ public:
     QImage avatar() const { return _avatar; }
     void setAvatar(QImage avatar) { _avatar = avatar; }
 
-protected:
-    MessageType _type;
 
 private:
     QString _sender;
+    MessageType _type;
     QDateTime _time;
     QImage _avatar;
 };

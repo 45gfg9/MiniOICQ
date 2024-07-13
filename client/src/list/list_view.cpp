@@ -110,13 +110,6 @@ void ListView::initUi()
     // arrange
     auto layout = new QVBoxLayout(this);
     auto itemListLayout = new QVBoxLayout(_itemList);
-
-    // fill default data
-    for(int i = 0; i < 11; i++)
-    {
-        itemListLayout->addWidget(new ListViewItem(_itemList));
-    }
-
     _scrollArea->setWidget(_itemList);
     layout->addWidget(_appBar);
     layout->addWidget(_scrollArea);
@@ -151,6 +144,13 @@ void ListView::initUi()
     // clostButton
     _closeButton->setOffset(16, 16);
     // _closeButton->setMini(true);
+
+    // fill default data
+    for(int i = 0; i < 11; i++)
+    {
+        itemListLayout->addWidget(new ListViewItem(_itemList));
+    }
+
 }
 
 void ListView::initConnect()

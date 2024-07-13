@@ -126,6 +126,56 @@ void ChatViewItem::initVoice(AudioMessage& message) {}
 
 void ChatViewItem::initVideo(VideoMessage& message) {}
 
+ChatView::ChatView(QWidget* parent) : QWidget(parent)
+{
+    initUi();
+    initConnect();
+}
+
+void ChatView::initUi()
+{
+    _splitter = new QSplitter(this);
+    _appBar = new QtMaterialAppBar(_splitter);
+    _chatArea = new QScrollArea(_splitter);
+    _chatList = new QWidget(_chatArea);
+    _input = new QTextEdit(_splitter);
+    _sendButton = new QtMaterialRaisedButton(this);
+    _closeButton = new QtMaterialRaisedButton(this);
+
+    // arrange
+    auto chatLayout = new QVBoxLayout(_chatList);
+    _chatArea->setWidget(_chatList);
+    _splitter->addWidget(_appBar);
+    _splitter->addWidget(_chatArea);
+    _splitter->addWidget(_input);
+
+    // style
+    this->setWindowFlag(Qt::Window);
+    this->setFixedSize(ChatViewItem::Width, Height);
+    _splitter->setOrientation(Qt::Vertical);
+    // button
+    _sendButton->setFixedSize(ButtonWidth, ButtonHeight);
+    _sendButton->setGeometry(ChatViewItem::Width - ButtonHMargin - ButtonWidth,
+                             Height - ButtonVMargin - ButtonVMargin -
+                                 ButtonHeight,
+                             ButtonWidth, ButtonHeight);
+    _sendButton->setStyleSheet("font-size: 14px;");
+    _sendButton->setText("Send");
+    _closeButton->setFixedSize(ButtonWidth, ButtonHeight);
+    _closeButton->setGeometry(ChatViewItem::Width - ButtonHMargin -
+                                  2 * ButtonWidth - ButtonGap,
+                              Height - ButtonVMargin - ButtonVMargin -
+                                  ButtonHeight,
+                              ButtonWidth, ButtonHeight);
+    _closeButton->setText("Close");
+}
+
+void ChatView::initConnect() {}
+
+void ChatView::setModel(QAbstractItemModel* model) {}
+
+void ChatView::on_sendButton_clicked() {}
+
 void bindChatView(ChatView* view, QAbstractItemModel* model) {}
 
 } // namespace MINIOICQ
