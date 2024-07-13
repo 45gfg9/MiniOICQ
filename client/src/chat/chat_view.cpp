@@ -11,7 +11,7 @@ namespace MINIOICQ
 void ChatDelegate::setEditorData(QWidget* editor,
                                  const QModelIndex& index) const
 {
-    auto* model = qobject_cast<ChatViewModel*>(index.model());
+    auto model = qobject_cast<const ChatViewModel*>(index.model());
     // if(index.column() != model->avatarColumn())
     // _avatar->setImage(message.avatar());
     if (index.column() != model->messageColumn())
@@ -21,7 +21,7 @@ void ChatDelegate::setEditorData(QWidget* editor,
     }
 
     // set message widget
-    QString type = index.siblingAtColumn(model->typeColumn()).data().toString();
+    QString type = index.siblingAtColumn(model->mtypeColumn()).data().toString();
     QByteArray message = index.data().toByteArray();
     if (type.startsWith("text"))
     {
