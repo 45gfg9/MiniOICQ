@@ -1,10 +1,14 @@
 #ifndef LIST_VIEWMODEL_H
 #define LIST_VIEWMODEL_H
 
+#include <QSortFilterProxyModel>
+
 #include "list_model.h"
 #include "websocket/websocket.h"
 #include "chat/chat_manager.h"
-#include <QSortFilterProxyModel>
+#include "common/chat_info.h"
+#include "common/user_info.h"
+#include "common/message.h"
 
 namespace MINIOICQ
 {
@@ -37,8 +41,8 @@ public slots:
     void on_closeButton_clicked();
 
     // from WebSocketConnector
-    void on_newMsg(/* QVector<MINIOICQ::Message> & messages */);
-    void on_newChat(/* QVector<MINIOICQ::ChatInfo> chat */);
+    void on_newMsg(QVector<MINIOICQ::AbstractMessage> & messages);
+    void on_newChat(QVector<MINIOICQ::ChatInfo> chat);
     void on_newUser(QVector < MINIOICQ::UserInfo> & users);
 
 private:

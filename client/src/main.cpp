@@ -92,42 +92,25 @@ int main(int argc, char* argv[])
     loginViewModel.setWsConnector(&wsConnector);
     MINIOICQ::bindLoginView(loginView, &loginViewModel);
 
-    // List
-    // MINIOICQ::ListView listView;
-    // MINIOICQ::ListViewModel listViewModel;
-    // MINIOICQ::ListModel listModel;
-    // listViewModel.setSourceModel(&listModel);
-    // listViewModel.setWsConnector(&wsConnector);
-    // bindListView(&listView, &listViewModel);
-    /*
-        // Main Logic
-        if (loginView->exec() == QDialog::Accepted)
-        {
-            qDebug() << "Login success";
-            QSqlDatabase localChatDB;
-            initDB(loginViewModel.loggedUserId(), localChatDB);
-            listModel.setDatabase(localChatDB);
-            listView.show();
-        }
-        else
-        {
-            qDebug() << "Login failed";
-        }
-    */
-    qDebug() << "test";
-    MINIOICQ::TextMessage text("me",
-                               "a very very very very long long long message a "
-                               "very very very very long long long message");
-    QDirIterator it(":", QDirIterator::Subdirectories);
-    while (it.hasNext())
+    MINIOICQ::ListView listView;
+    MINIOICQ::ListViewModel listViewModel;
+    MINIOICQ::ListModel listModel;
+    listViewModel.setSourceModel(&listModel);
+    listViewModel.setWsConnector(&wsConnector);
+    bindListView(&listView, &listViewModel);
+    // Main Logic
+    if (loginView->exec() == QDialog::Accepted)
     {
-        qDebug() << it.next();
+        qDebug() << "Login success";
+        QSqlDatabase localChatDB;
+        initDB(loginViewModel.loggedUserId(), localChatDB);
+        listModel.setDatabase(localChatDB);
+        listView.show();
     }
-    text.setAvatar(QImage(":/testImage.jpg"));
-    MINIOICQ::ChatViewItem chatViewItem(text);
-    MINIOICQ::ChatView chatView;
-    qDebug() << "show chatView";
-    chatView.show();
+    else
+    {
+        qDebug() << "Login failed";
+    }
 
     return a.exec();
 }
