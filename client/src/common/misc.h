@@ -8,6 +8,7 @@
 #include <QImage>
 #include <QByteArray>
 #include <QBuffer>
+#include <QIcon>
 
 namespace MINIOICQ
 {
@@ -19,6 +20,8 @@ extern QMargins zeroMargins;
 extern QString themeStyleSheetDeep;
 extern QString themeStyleSheetLight;
 extern QString themeStyleSheetDim;
+extern QImage testImage;
+extern QIcon testIcon;
 
 void initTheme();
 void Error(QString message);

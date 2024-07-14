@@ -5,6 +5,8 @@
         <file alias="menu.svg">../resources/menu.svg</file>
         <file alias="chat.svg">../resources/chat.svg</file>
         <file alias="invite.svg">../resources/invite.svg</file>
+        <file alias="checkBox.svg">../resources/checkBox.svg</file>
+        <file alias="checkBoxOutline.svg">../resources/checkBoxOutline.svg</file>
         <file alias="testImage.jpg">../resources/testImage.jpg</file>
     </qresource>
 </RCC>

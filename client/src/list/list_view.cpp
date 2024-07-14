@@ -20,28 +20,29 @@ InviteItem::InviteItem(QWidget* parent) : QWidget(parent) { initUi(); }
 
 void InviteItem::setUser(const UserInfo& user)
 {
-    _name->setText(user.username());
     _avatar->setImage(user.avatar());
+    _checkBox->setText(user.username());
 }
 
 void InviteItem::initUi()
 {
     _avatar = new QtMaterialAvatar(this);
-    _name = new QLabel(this);
     _checkBox = new QtMaterialCheckBox(this);
 
     // arrange
     auto layout = new QHBoxLayout(this);
-    layout->addWidget(_checkBox);
     layout->addWidget(_avatar);
-    layout->addWidget(_name);
+    layout->addWidget(_checkBox);
+    layout->addStretch(1);
 
     // style
     // // item
-    // this->setPalette(themePalette);
-    // // layout: border 16, space 8
-    // layout->setContentsMargins(16, 16, 16, 16);
-    // layout->setSpacing(8);
+    this->setPalette(themePalette);
+    this->setFixedSize(Width, Height);
+    this->setContentsMargins(zeroMargins);
+    // layout: border 16, space 8
+    layout->setContentsMargins(8, 0, 10, 0);
+    layout->setSpacing(0);
     // // avatar: 40 * 40
     // _avatar->setSize(40);
     // // name: height 20, font 16
@@ -49,6 +50,66 @@ void InviteItem::initUi()
     // _name->setFixedSize(kListViewWidth - (16 * 2 + 40 + 8), 20);
     // // checkBox: 20 * 20
     // _checkBox->setFixedSize(20, 20);
+    _checkBox->setStyleSheet("font-size: 14px;");
+    _checkBox->setCheckedIcon(QIcon(":/checkBox.svg"));
+    _checkBox->setUncheckedIcon(QIcon(":/checkBoxOutline.svg"));
+
+    _avatar->setSize(32);
+}
+
+InviteDialog::InviteDialog(QWidget* parent) : QtMaterialDialog(parent)
+{
+    initUi();
+}
+
+void InviteDialog::setUsers(const QVector<UserInfo>& users)
+{
+    for (const auto& user : users)
+    {
+        auto* item = new InviteItem(_itemList);
+        _itemList->layout()->addWidget(item);
+        item->setUser(user);
+    }
+    _itemList->setFixedHeight(InviteItem::Height * users.size());
+}
+
+void InviteDialog::initUi()
+{
+    QWidget* widget = new QWidget(this);
+    _scrollArea = new QScrollArea(widget);
+    _itemList = new QWidget(_scrollArea);
+    _inviteButton = new QtMaterialRaisedButton("Invite", widget);
+    _cancelButton = new QtMaterialRaisedButton("Cancel", widget);
+
+    // arrange
+    auto layout = new QVBoxLayout;
+    auto dialogLayout = new QVBoxLayout(widget);
+    auto itemListLayout = new QVBoxLayout(_itemList);
+    _scrollArea->setWidget(_itemList);
+    dialogLayout->addWidget(_scrollArea);
+    dialogLayout->addWidget(_inviteButton);
+    dialogLayout->addWidget(_cancelButton);
+    layout->addWidget(widget);
+    this->setWindowLayout(layout);
+
+    // style
+    // // dialog
+    this->setFixedSize(ListView::Width, ListView::Height);
+    widget->setFixedSize(Width, Height);
+    // widget->setContentsMargins(zeroMargins);
+    // layout->setContentsMargins(zeroMargins);
+    // // scrollArea
+    _scrollArea->setWidgetResizable(false);
+    _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _scrollArea->setVerticalScrollBar(new QtMaterialScrollBar);
+    // // itemList
+    _itemList->setFixedWidth(Width);
+    // // itemListLayout
+    itemListLayout->setContentsMargins(zeroMargins);
+    // // inviteButton
+    _inviteButton->setFixedSize(Width, 40);
+    // // cancelButton
+    _cancelButton->setFixedSize(Width, 40);
 }
 
 static int constexpr kListViewWidth = 252;
@@ -185,25 +246,27 @@ void ListView::initUi()
     // inviteButton
     _inviteButton->setOffset(16, 48);
     _inviteButton->setMini(true);
+
+    // inviteDialog
+    _inviteDialog = new InviteDialog(this);
 }
 
 void ListView::initConnect()
 {
     connect(_closeButton, &QtMaterialFloatingActionButton::clicked, this,
-            &ListView::closeAll);
-    connect(_inviteButton, &QtMaterialFloatingActionButton::clicked, this,
-            &ListView::on_invite);
+            &ListView::on_close);
+    connect(_inviteButton, &QtMaterialFloatingActionButton::clicked,
+            _inviteDialog, &InviteDialog::showDialog);
+    connect(_inviteDialog->_cancelButton, &QtMaterialRaisedButton::clicked,
+            _inviteDialog, &InviteDialog::hideDialog);
+    connect(_inviteDialog->_inviteButton, &QtMaterialRaisedButton::clicked,
+            this, &ListView::on_invite);
 }
 
 void ListView::on_invite()
 {
-    // display a dialog to let user select contacts
-    auto model = qobject_cast<ListViewModel*>(_mappers[0]->model());
-    QVector<UserInfo> users = model->selectUser();
-    QDialog dialog(this);
-    // QtMaterialCheckBox
-
-    emit invite({});
+    if (_inviteDialog->_uids.size() != 0)
+        emit invite(_inviteDialog->_uids);
 }
 
 void ListView::on_close()
@@ -276,6 +339,7 @@ void ListView::on_dataChanged()
     this->_itemList->setFixedHeight(kListViewItemHeight * modelItemNum);
     qDebug() << "ListView::on_dataChanged: height"
              << kListViewHeight * modelItemNum;
+    _inviteDialog->setUsers(model->selectUser());
 }
 
 void ListView::setModel(QAbstractItemModel* model)
@@ -289,12 +353,13 @@ void ListView::setModel(QAbstractItemModel* model)
             &ListView::on_dataChanged);
     connect(this, &ListView::openChat, listViewModel,
             &ListViewModel::on_openChat);
+    connect(this, &ListView::closeAll, listViewModel,
+            &ListViewModel::on_closeAll);
 
     // qDebug() << "ListView::setModel: " << model;
     auto mapper = new QDataWidgetMapper(this);
     mapper->setModel(model);
     _mappers.push_back(mapper);
-    // on_dataChanged({}, {}, {});
 }
 
 void ListView::mouseReleaseEvent(QMouseEvent* event)

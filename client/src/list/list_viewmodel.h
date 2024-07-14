@@ -55,7 +55,7 @@ public slots:
     // debug
     void on_debug();
     void invalidate();
-    
+
 
     // from ListView
     void on_openChat(int cid);

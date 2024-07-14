@@ -113,12 +113,18 @@ int main(int argc, char* argv[])
     MINIOICQ::ListModel listModel;
     bindListView(&listView, &listViewModel);
 
+    // auto inviteItem = new MINIOICQ::InviteItem;
+    // auto userInfo = new MINIOICQ::UserInfo("1", "name", "", QImage(":/testImage.jpg"));
+    // inviteItem->setUser(*userInfo);
+    // inviteItem->show();
+
     // Main Logic
+
     if (loginView->exec() == QDialog::Accepted)
     {
         QSqlDatabase localChatDB;
-        initDB("client_db_" + loginViewModel.loggedUserId() + ".db", localChatDB);
-        listModel.setDatabase(localChatDB);
+        initDB("client_db_" + loginViewModel.loggedUserId() + ".db",
+        localChatDB); listModel.setDatabase(localChatDB);
         listViewModel.setSourceModel(&listModel);
         listViewModel.setUserId(loginViewModel.loggedUserId());
         listViewModel.setWsConnector(&wsConnector);

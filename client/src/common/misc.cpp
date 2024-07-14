@@ -3,6 +3,8 @@
 
 namespace MINIOICQ
 {
+QIcon testIcon = QIcon(":/close.svg");
+QImage testImage = QImage(":/testImage.jpg");
 
 void Error(QString message)
 {

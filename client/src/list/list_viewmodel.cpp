@@ -124,7 +124,6 @@ void ListViewModel::on_closeAll()
 {
     qDebug() << "ListViewModel::on_closeButton_clicked";
     _chatManager->closeAll();
-    // _wsConnector->close();
 }
 
 void ListViewModel::on_invite(const QVector<UserInfo>& users)

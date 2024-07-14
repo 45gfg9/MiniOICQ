@@ -12,6 +12,7 @@
 #include "qtmaterialavatar.h"
 #include "qtmaterialfab.h"
 #include "qtmaterialcheckbox.h"
+#include "qtmaterialdialog.h"
 
 #include "common/user_info.h"
 
@@ -23,6 +24,9 @@ class InviteItem: public QWidget
     Q_OBJECT
 
 public:
+    static int constexpr Width = 220;
+    static int constexpr Height = 48;
+
     InviteItem(QWidget* parent = 0);
     void setUser(const UserInfo& user);
 
@@ -30,15 +34,17 @@ private:
     void initUi();
     QtMaterialCheckBox* _checkBox;
     QtMaterialAvatar* _avatar;
-    QLabel* _name;
 
     friend class InviteDialog;
 };
 
-class InviteDialog: public QDialog
+class InviteDialog: public QtMaterialDialog
 {
     Q_OBJECT
 public:
+    static int constexpr Width = InviteItem::Width;
+    static int constexpr Height = 400;
+
     InviteDialog(QWidget* parent = 0);
     void setUsers(const QVector<UserInfo>& users);
 
@@ -51,7 +57,9 @@ private:
     QWidget* _itemList;
     QtMaterialRaisedButton* _inviteButton;
     QtMaterialRaisedButton* _cancelButton;
+    QVector<int> _uids;
 
+    friend class ListView;
 };
 
 /**
@@ -83,6 +91,9 @@ class ListViewItem : public QWidget
     Q_OBJECT
 
 public:
+    static int constexpr Width = 252;
+    static int constexpr Height = 72;
+
     ListViewItem(QWidget* parent = 0);
     ~ListViewItem();
     static void setUnreadCount(QLabel* label, int count);
@@ -133,6 +144,9 @@ class ListView : public QWidget
     Q_OBJECT
 
 public:
+    static int constexpr Width = ListViewItem::Width;
+    static int constexpr Height = 7 * ListViewItem::Height;
+
     ListView(QWidget* parent = 0);
     ~ListView();
 
@@ -170,6 +184,7 @@ private:
     QWidget* _itemList;
     QtMaterialFloatingActionButton* _closeButton;
     QtMaterialFloatingActionButton* _inviteButton;
+    InviteDialog* _inviteDialog;
 
     friend void bindListView(ListView* view, QAbstractItemModel* model);
 };
