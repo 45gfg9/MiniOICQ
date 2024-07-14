@@ -38,14 +38,14 @@ static MINIOICQ::Message parseMessage(const QJsonObject& obj)
     QString sender_id = QString::number(obj["sender_id"].toInt());
     QDateTime time = QDateTime::fromString(obj["time"].toString(), Qt::ISODate);
     QString type = obj["type"].toString();
-    QByteArray content = QByteArray::fromBase64(obj["content"].toString().toUtf8());
+    QByteArray content =
+        QByteArray::fromBase64(obj["content"].toString().toUtf8());
     return MINIOICQ::Message(message_id, chat_id, sender_id, type, content,
                              time);
 }
 
 static MINIOICQ::UserInfo parseUserInfo(const QJsonObject& obj)
 {
-    // qDebug() << obj;
     QString id = QString::number(obj["user_id"].toInt());
     QString name = obj["user_name"].toString();
     QByteArray avatar =
@@ -118,13 +118,9 @@ void WebSocketConnector::onMessageReceived(const QString& message)
     {
         MINIOICQ::UserInfo info = parseUserInfo(obj);
         if (action == "auth.login.success")
-        {
             emit loginSuccess(info);
-        }
         else
-        {
             emit regSuccess(info);
-        }
     }
     else if (action == "user.sync")
     {
@@ -149,11 +145,13 @@ void WebSocketConnector::onMessageReceived(const QString& message)
         }
         emit syncMsg(messages);
     }
-    else if (action == "auth.login.fail")
+    else if (action == "auth.login.fail" || action == "auth.register.fail")
     {
         QString reason = obj["reason"].toString();
-        qDebug() << "Login failed: " << reason;
-        emit loginFailed(reason);
+        if (action == "auth.login.fail")
+            emit loginFailed(reason);
+        else
+            emit regFailed(reason);
     }
     else if (action == "message.push")
     {

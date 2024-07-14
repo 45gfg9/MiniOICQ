@@ -75,7 +75,7 @@ public slots:
     // LoginViewModel
     void on_loginSuccess();
     void on_loginFailed(QString message);
-    void on_regSuccess();
+    void on_regSuccess(QString uid);
     void on_regFailed(QString message);
 
 private slots:

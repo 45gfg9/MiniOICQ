@@ -171,6 +171,9 @@ ChatView::ChatView(QWidget* parent) : QWidget(parent)
 
 void ChatView::initUi()
 {
+    // ChatView should be deleted only by itself when closed
+    this->setAttribute(Qt::WA_DeleteOnClose);
+
     _splitter = new QSplitter(this);
     _appBar = new QtMaterialAppBar(_splitter);
     _chatArea = new QScrollArea(_splitter);
@@ -378,8 +381,9 @@ void ChatView::on_sendButton_clicked() {
 
 void ChatView::on_closeButton_clicked() {
     qDebug() << "ChatView::on_closeButton_clicked";
-    close();
+    // to ChatViewModel
     emit closeChat();
+    close();
 }
 
 void bindChatView(ChatView* view, QAbstractItemModel* model) {

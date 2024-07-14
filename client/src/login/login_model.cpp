@@ -15,7 +15,7 @@ LoginModel::LoginModel(QObject* parent, QSqlDatabase db)
         createTable.prepare("CREATE TABLE localUser ("
                             "userId INT PRIMARY KEY NOT NULL, "
                             "userName VARCHAR NOT NULL, "
-                            "password VARCHAR NOT NULL, "
+                            "password VARCHAR, "
                             "avatar BLOB"
                             ")");
         if (!createTable.exec())

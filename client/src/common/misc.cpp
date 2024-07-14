@@ -1,7 +1,19 @@
 #include "misc.h"
+#include <QDebug>
 
 namespace MINIOICQ
 {
+
+void Error(QString message)
+{
+    qCritical() << "\033[1;31m[Error]\033[0m " + message;
+    abort();
+}
+
+void Warning(QString message)
+{
+    qWarning() << "\033[1;33m[Warning]\033[0m " + message;
+}
 
 QColor themeColor = QColor(0, 188, 212);
 QPalette themePalette = QPalette();

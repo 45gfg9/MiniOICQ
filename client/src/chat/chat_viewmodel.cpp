@@ -69,6 +69,7 @@ void ChatViewModel::on_send(Message msg)
 void ChatViewModel::on_closeChat()
 {
     qDebug() << "ChatViewModel::on_closeChat";
+    // to ChatManager
     emit closeChat(_chatId.toInt());
 }
 

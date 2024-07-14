@@ -5,18 +5,17 @@
 #include <QSqlQuery>
 
 #include "list_model.h"
+#include "common/misc.h"
 
 namespace MINIOICQ
 {
 
 void ListModel::setDatabase(QSqlDatabase db)
 {
-    // Execute MINIOICQ/sql/client.sql to create the tables
     _db = db;
     auto tables = db.tables();
     if (!tables.contains("users"))
     {
-        qDebug() << "Table users not found, creating tables";
         QSqlQuery initdb(db);
         initdb.exec("CREATE TABLE IF NOT EXISTS users ("
                         "uid INT PRIMARY KEY,"
@@ -67,8 +66,7 @@ void ListModel::setDatabase(QSqlDatabase db)
                         "WHERE lm.rank = 1;");
         if (initdb.lastError().isValid())
         {
-            qDebug() << "Create tables failed: " << initdb.lastError();
-            throw std::runtime_error("Create tables failed");
+            Error(initdb.lastError().text());
         }
     }
     refresh();
@@ -89,7 +87,6 @@ void ListModel::refresh()
     setHeaderData(4, Qt::Horizontal, "last_message");
     setHeaderData(5, Qt::Horizontal, "last_send_time");
     setHeaderData(6, Qt::Horizontal, "un_read_count");
-    qDebug() << "refresh";
     emit dataChanged(index(0, 0), index(rowCount(), columnCount()), {Qt::DisplayRole});
 }
 

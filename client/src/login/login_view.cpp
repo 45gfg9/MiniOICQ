@@ -1,11 +1,11 @@
 #include "login_view.h"
 #include "login_viewmodel.h"
 
+#include "common/misc.h"
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QVBoxLayout>
-#include "common/misc.h"
 
 namespace MINIOICQ
 {
@@ -17,7 +17,7 @@ void LoginDelegate::setEditorData(QWidget* editor,
     if (editor->metaObject()->className() == QString("QtMaterialAvatar"))
     {
         QImage avatar;
-        avatar.loadFromData(index.data(Qt::DisplayRole).toByteArray());
+        avatar.loadFromData(index.data(Qt::DisplayRole).toByteArray(), "jpg");
         qobject_cast<QtMaterialAvatar*>(editor)->setImage(avatar);
     }
     // autocomplete
@@ -173,26 +173,22 @@ void LoginView::setModel(QAbstractItemModel* model)
 
 void LoginView::on_login_clicked()
 {
-    qDebug() << "LoginView::on_login_clicked";
     QString userId = _userId->text();
     QString password = _password->text();
-    // to LoginModel on_login
+    // to LoginViewModel on_login
     emit login(userId, password);
-    // auto res = _mapper->submit();
-    // qDebug() << "submit: " << res;
 }
 
 void LoginView::on_reg_clicked()
 {
-    qDebug() << "LoginView::on_reg_clicked";
     QString userName = _userName->text();
     QString password = _password->text();
+    // to LoginViewModel on_reg
     emit reg(userName, password);
 }
 
 void LoginView::on_userId_itemSelected(QString userId)
 {
-    qDebug() << "LoginView::on_userId_itemSelected";
     auto* model = qobject_cast<const LoginViewModel*>(_mapper->model());
     auto match = model->match(model->index(0, model->userIdColumn()),
                               Qt::DisplayRole, userId, 1, Qt::MatchExactly);
@@ -200,28 +196,30 @@ void LoginView::on_userId_itemSelected(QString userId)
     {
         _mapper->setCurrentIndex(match.first().row());
     }
+    else
+    {
+        Warning("LoginView::on_userId_itemSelected: userId not found");
+    }
 }
 
 void LoginView::on_loginSuccess()
 {
-    qDebug() << "LoginView::loginSuccess";
     _snackbar->addMessage("Login Success");
     accept();
 }
 void LoginView::on_loginFailed(QString message)
 {
-    qDebug() << "LoginView::loginFailed";
     _snackbar->addMessage(message);
 }
-void LoginView::on_regSuccess()
+void LoginView::on_regSuccess(QString uid)
 {
-    qDebug() << "LoginView::regSuccess";
-    _snackbar->addMessage("Register Success");
-    accept();
+    _snackbar->addMessage("Register Success. Your user id is " + uid +
+                          ".\n"
+                          "Please login with your user id and password.");
+    _mapper->setCurrentIndex(_mapper->model()->rowCount() - 1);
 }
 void LoginView::on_regFailed(QString message)
 {
-    qDebug() << "LoginView::registerFailed";
     _snackbar->addMessage(message);
 }
 

@@ -18,6 +18,8 @@ extern QString themeStyleSheetLight;
 extern QString themeStyleSheetDim;
 
 void initTheme();
+void Error(QString message);
+void Warning(QString message);
 
 } // namespace MINIOICQ
 

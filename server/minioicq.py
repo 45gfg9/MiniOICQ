@@ -8,6 +8,7 @@ import ssl
 import sqlite3
 import argon2
 import random
+import urllib.request
 from datetime import datetime
 from bidict import bidict
 from uuid import UUID
@@ -114,6 +115,11 @@ async def heartbeat(ws: WebSocketServerProtocol, req: dict):
 @app.route('auth.login')
 async def auth_login(ws: WebSocketServerProtocol, req: dict):
     print(f'Login request from {ws.id}: {req}')
+
+    # check if user_id or password is empty
+    if not req.get('user_id') or not req.get('password'):
+        return {'action': 'auth.login.fail', 'reason': 'Empty user_id or password'}
+
     user_id = int(req['user_id'])
     password = req['password']
 
@@ -157,15 +163,26 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
     user_name = req['user_name']
     password = req['password']
 
-    with open('default-user.jpg', 'rb') as f:
-        avatar = f.read()
+    # check if user_name or password is empty
+    if not user_name or not password:
+        return {
+            'action': 'auth.register.fail',
+            'reason': 'Empty user name or password',
+        }
+
+    # with open('default-user.jpg', 'rb') as f:
+    #     avatar = f.read()
+    # load ramdom image from https://picsum.photos/200/200
+    with urllib.request.urlopen('https://picsum.photos/200/200') as response:
+        avatar = response.read()
 
     ph = argon2.PasswordHasher()
     pwd_hash = ph.hash(password)
     user_id, = conn.execute('INSERT INTO users (nick, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING uid', (user_name, pwd_hash, avatar)).fetchone()
     conn.commit()
 
-    app.users[user_id] = ws.id
+    # register but not login
+    # app.users[user_id] = ws.id
     return {
         'action': 'auth.register.success',
         'user_id': user_id,

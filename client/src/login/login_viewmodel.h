@@ -6,8 +6,8 @@
 #include <QSqlTableModel>
 
 #include "common/user_info.h"
-#include "websocket/websocket.h"
 #include "login_model.h"
+#include "websocket/websocket.h"
 
 namespace MINIOICQ
 {
@@ -30,8 +30,7 @@ public:
                   int role = Qt::DisplayRole) const override;
     bool setData(const QModelIndex& index, const QVariant& value,
                  int role = Qt::DisplayRole) override;
-    bool insertItem(const QVariant& userId, const QVariant& userName,
-                    const QVariant& password, const QVariant& avatar);
+    bool insertItem(const UserInfo& info);
 
     void setWsConnector(WebSocketConnector* wsConnector);
 
@@ -44,7 +43,7 @@ Q_SIGNALS:
     // to LoginView
     void loginSuccess();
     void loginFailed(QString message);
-    void regSuccess();
+    void regSuccess(QString uid);
     void regFailed(QString message);
 
 public slots:

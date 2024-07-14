@@ -1,5 +1,5 @@
 #include "login_viewmodel.h"
-#include <QDebug>
+#include "common/misc.h"
 
 namespace MINIOICQ
 {
@@ -21,35 +21,44 @@ QVariant LoginViewModel::data(const QModelIndex& index, int /*role*/) const
 bool LoginViewModel::setData(const QModelIndex& index, const QVariant& value,
                              int /*role*/)
 {
-    qDebug() << "LoginViewModel::setData" /* << index */ << value.type()
-             << (value.type() == QVariant::ByteArray
-                     ? value.toByteArray().size()
-                     : value);
     return QSortFilterProxyModel::setData(index, value, Qt::EditRole);
 }
 
-bool LoginViewModel::insertItem(const QVariant& userId,
-                                const QVariant& userName,
-                                const QVariant& password,
-                                const QVariant& avatar)
+bool LoginViewModel::insertItem(const UserInfo& info)
 {
-    qDebug() << "LoginViewModel::insertItem";
     QSqlRecord record;
     record.append(QSqlField("userId", QVariant::Int));
     record.append(QSqlField("userName", QVariant::String));
     record.append(QSqlField("password", QVariant::String));
     record.append(QSqlField("avatar", QVariant::ByteArray));
-    record.setValue("userId", userId.toInt());
-    record.setValue("userName", userName.toString());
-    record.setValue("password", password.toString());
-    record.setValue("avatar", avatar.toBitArray());
+    record.setValue("userId", info.userId().toInt());
+    record.setValue("userName", info.username());
+    record.setValue("password", info.password());
+    QByteArray arr;
+    QBuffer buffer(&arr);
+    buffer.open(QIODevice::WriteOnly);
+    info.avatar().save(&buffer, "JPG");
+    record.setValue("avatar", arr);
+
+    // qt base
+    // QByteArray ba = field.value().toByteArray();
+    // QString res;
+    // static const char hexchars[] = "0123456789abcdef";
+    // for (int i = 0; i < ba.size(); ++i)
+    // {
+    //     uchar s = (uchar)ba[i];
+    //     res += QLatin1Char(hexchars[s >> 4]);
+    //     res += QLatin1Char(hexchars[s & 0x0f]);
+    // }
+    // qDebug() << QLatin1Char('\'') + res + QLatin1Char('\'');
+    // qt base
+    // qDebug() << "LoginViewModel::insertItem" << record;
     QSqlTableModel* model = qobject_cast<QSqlTableModel*>(sourceModel());
-    qDebug() << "insertRecord: " << record;
     if (model->insertRecord(-1, record))
     {
         return model->submitAll();
     }
-    qDebug() << "LoginViewModel::insertItem: failed to insert record";
+    Warning("LoginViewModel::insertItem: failed to insert record");
     return false;
 }
 
@@ -58,7 +67,8 @@ void LoginViewModel::setWsConnector(WebSocketConnector* wsConnector)
     // to WebSocketConnector
     connect(this, &LoginViewModel::login, wsConnector,
             &WebSocketConnector::on_login);
-    connect(this, &LoginViewModel::reg, wsConnector, &WebSocketConnector::on_reg);
+    connect(this, &LoginViewModel::reg, wsConnector,
+            &WebSocketConnector::on_reg);
     // from WebSocketConnector
     connect(wsConnector, &WebSocketConnector::loginSuccess, this,
             &LoginViewModel::on_loginSuccess);
@@ -72,13 +82,11 @@ void LoginViewModel::setWsConnector(WebSocketConnector* wsConnector)
 
 void LoginViewModel::on_login(QString userId, QString password)
 {
-    qDebug() << "LoginViewModel::on_login";
     emit login(userId, password);
 }
 
 void LoginViewModel::on_reg(QString userName, QString password)
 {
-    qDebug() << "LoginViewModel::on_reg";
     emit reg(userName, password);
 }
 
@@ -96,53 +104,50 @@ void LoginViewModel::on_loginSuccess(const UserInfo& info)
             setData(index.siblingAtColumn(userNameColumn()), info.username());
         res |=
             setData(index.siblingAtColumn(passwordColumn()), info.password());
-        res |= setData(index.siblingAtColumn(avatarColumn()), info.avatar());
+    QByteArray arr;
+    QBuffer buffer(&arr);
+    buffer.open(QIODevice::WriteOnly);
+    info.avatar().save(&buffer, "JPG");
+        res |= setData(index.siblingAtColumn(avatarColumn()), arr);
+        if (!res)
+        {
+            Error("LoginViewModel::on_loginSuccess: failed to edit user data");
+        }
     }
     else
     {
         // update user data
-        res = insertItem(info.userId(), info.username(), info.password(),
-                         info.avatar());
+        res = insertItem(info);
+        if (!res)
+        {
+            Error(
+                "LoginViewModel::on_loginSuccess: failed to update user data");
+        }
     }
 
-    if (!res)
-    {
-        qDebug() << "LoginViewModel::on_loginSuccess: failed to update user "
-                    "data in model";
-        throw std::runtime_error("Update user data failed");
-    }
-    qDebug() << "LoginViewModel::loginSuccess";
-
-    // emit signal to LoginView to show main window
-    emit loginSuccess();
-    qDebug() << "LoginViewModel::on_loginSuccess; user_id: " << info.userId();
     _loggedUserId = info.userId();
+
+    // to LoginView on_loginSuccess
+    emit loginSuccess();
 }
 
 void LoginViewModel::on_loginFailed(const QString& reason)
 {
-    qDebug() << "LoginViewModel::loginFailed: " << reason;
     emit loginFailed(reason);
 }
 
 void LoginViewModel::on_regSuccess(const UserInfo& info)
 {
-    qDebug() << "LoginViewModel::on_regSuccess; user_id: " << info.userId();
     // update user data
-    if (!insertItem(info.userId(), info.username(), info.password(),
-                    info.avatar()))
+    if (!insertItem(info))
     {
-        qDebug() << "LoginViewModel::on_regSuccess: failed to update user data "
-                    "in model";
-        throw std::runtime_error("Update user data failed");
+        Error("LoginViewModel::on_regSuccess: failed to update user data");
     }
-    emit regSuccess();
-    _loggedUserId = info.userId();
+    emit regSuccess(info.userId());
 }
 
 void LoginViewModel::on_regFailed(const QString& reason)
 {
-    qDebug() << "LoginViewModel::on_regFail: " << reason;
     emit regFailed(reason);
 }
 

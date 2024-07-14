@@ -21,7 +21,7 @@ ChatModel::ChatModel(QSqlDatabase db, QVariant chatId, QObject* parent)
                         "SELECT mid, mtype, message, send_time, users.uid AS uid, name, avatar "
                         "FROM messages JOIN users ON messages.uid = users.uid "
                         "WHERE cid = " + chatId.toString() + " "
-                        // "WHERE cid = (?) " 
+                        // "WHERE cid = (?) "
                         "ORDER BY send_time ASC");
     // clang-format on
     // createView.bindValue(":chatId", chatId.toInt());
@@ -43,8 +43,7 @@ ChatModel::~ChatModel()
     dropView.prepare("DROP VIEW " + _viewName);
     if (!dropView.exec())
     {
-        qDebug() << "Drop view failed: " << dropView.lastError();
-        throw std::runtime_error("Drop view failed");
+        qDebug() << " Drop view failed: " << dropView.lastError();
     }
 }
 

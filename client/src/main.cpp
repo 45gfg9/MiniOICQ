@@ -51,15 +51,12 @@ void initDB(const QString& dbName, QSqlDatabase& db)
     }
     // init database file
     db = QSqlDatabase::addDatabase("QSQLITE", "users_connection");
+    qDebug() << db.driver()->hasFeature(QSqlDriver::BLOB);
     db.setDatabaseName(localDBPath + dbName);
     if (!db.open())
     {
         qDebug() << "Open database failed: " << db.lastError();
         throw db.lastError();
-    }
-    else
-    {
-        qDebug() << "Open database success: " << db.databaseName();
     }
 }
 
@@ -120,7 +117,6 @@ int main(int argc, char* argv[])
     // Main Logic
     if (loginView->exec() == QDialog::Accepted)
     {
-        qDebug() << "Login success";
         QSqlDatabase localChatDB;
         initDB("client_db_" + loginViewModel.loggedUserId() + ".db", localChatDB);
         listModel.setDatabase(localChatDB);
@@ -131,7 +127,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        qDebug() << "Login failed";
+        exit(EXIT_SUCCESS);
     }
 
     return a.exec();
