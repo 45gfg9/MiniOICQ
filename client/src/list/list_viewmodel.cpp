@@ -5,6 +5,8 @@
 #include <QSqlRecord>
 #include <QtAlgorithms>
 
+#include "common/misc.h"
+
 namespace MINIOICQ
 {
 
@@ -12,16 +14,16 @@ void ListViewModel::on_debug() { qDebug() << "ListViewModel::on_debug"; }
 
 void ListViewModel::invalidate()
 {
-    qDebug() << "ListViewModel::invalidate";
     QSortFilterProxyModel::invalidate();
-    qDebug() << "ListViewModel Content: ";
-    for (int i = 0; i < rowCount(); ++i)
-    {
-        for (int j = 0; j < columnCount(); ++j)
-        {
-            qDebug() << data(index(i, j));
-        }
-    }
+    // qDebug() << "ListViewModel::invalidate";
+    // qDebug() << "ListViewModel Content: ";
+    // for (int i = 0; i < rowCount(); ++i)
+    // {
+    //     for (int j = 0; j < columnCount(); ++j)
+    //     {
+    //         qDebug() << data(index(i, j));
+    //     }
+    // }
     ListModel* model = qobject_cast<ListModel*>(sourceModel());
     _chatIdColumn = model->record().indexOf("cid");
     _chatNameColumn = model->record().indexOf("name");
@@ -31,14 +33,15 @@ void ListViewModel::invalidate()
     _chatLastMessageTimeColumn = model->record().indexOf("last_send_time");
     _chatUnreadMessageCountColumn = model->record().indexOf("un_read_count");
 
-    qDebug() << "ListViewModel::setSourceModel: chatIdColumn=" << _chatIdColumn
-             << ", chatNameColumn=" << _chatNameColumn
-             << ", chatAvatarColumn=" << _chatAvatarColumn
-             << ", chatLastMessageTypeColumn=" << _chatLastMessageTypeColumn
-             << ", chatLastMessageColumn=" << _chatLastMessageColumn
-             << ", chatLastMessageTimeColumn=" << _chatLastMessageTimeColumn
-             << ", chatUnreadMessageCountColumn="
-             << _chatUnreadMessageCountColumn;
+    // qDebug() << "ListViewModel::setSourceModel: chatIdColumn=" <<
+    // _chatIdColumn
+    //          << ", chatNameColumn=" << _chatNameColumn
+    //          << ", chatAvatarColumn=" << _chatAvatarColumn
+    //          << ", chatLastMessageTypeColumn=" << _chatLastMessageTypeColumn
+    //          << ", chatLastMessageColumn=" << _chatLastMessageColumn
+    //          << ", chatLastMessageTimeColumn=" << _chatLastMessageTimeColumn
+    //          << ", chatUnreadMessageCountColumn="
+    //          << _chatUnreadMessageCountColumn;
 
     emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
 }
@@ -177,6 +180,7 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
     QSqlTableModel joinModel(nullptr, db);
     joinModel.setTable("joins");
     joinModel.select();
+
     auto it = chats.begin();
     for (int i = 0; i < chatModel.rowCount(); ++i)
     {
@@ -189,7 +193,7 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
             QSqlRecord newChat = chatModel.record();
             newChat.setValue("cid", it->chatId());
             newChat.setValue("name", it->name());
-            newChat.setValue("avatar", it->avatar());
+            newChat.setValue("avatar", toByteArray(it->avatar()));
             newChat.setValue("oid", it->ownerId());
             newChat.setValue("last_view", it->lastViewTime());
             newChat.setValue("start_time", it->startTime());
@@ -216,7 +220,7 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
         {
             // update chat info
             nowChat.setValue("name", it->name());
-            nowChat.setValue("avatar", it->avatar());
+            nowChat.setValue("avatar", toByteArray(it->avatar()));
             nowChat.setValue("oid", it->ownerId());
             nowChat.setValue("last_view", it->lastViewTime());
             nowChat.setValue("start_time", it->startTime());
@@ -240,7 +244,7 @@ void ListViewModel::on_newChat(QVector<MINIOICQ::ChatInfo>& chats)
         QSqlRecord newChat = chatModel.record();
         newChat.setValue("cid", it->chatId());
         newChat.setValue("name", it->name());
-        newChat.setValue("avatar", it->avatar());
+        newChat.setValue("avatar", toByteArray(it->avatar()));
         newChat.setValue("oid", it->ownerId());
         newChat.setValue("last_view", it->lastViewTime());
         newChat.setValue("start_time", it->startTime());
@@ -285,7 +289,7 @@ void ListViewModel::on_newUser(QVector<MINIOICQ::UserInfo>& users)
             QSqlRecord newUser = userModel.record();
             newUser.setValue("uid", it->userId());
             newUser.setValue("name", it->username());
-            newUser.setValue("avatar", it->avatar());
+            newUser.setValue("avatar", toByteArray(it->avatar()));
             if (!userModel.insertRecord(-1, newUser))
             {
                 qDebug() << "insert user failed: " << userModel.lastError();
@@ -300,7 +304,7 @@ void ListViewModel::on_newUser(QVector<MINIOICQ::UserInfo>& users)
         {
             // update user info
             nowUser.setValue("name", it->username());
-            nowUser.setValue("avatar", it->avatar());
+            nowUser.setValue("avatar", toByteArray(it->avatar()));
             if (!userModel.setRecord(i, nowUser))
             {
                 qDebug() << "update user failed: " << userModel.lastError();
@@ -314,7 +318,7 @@ void ListViewModel::on_newUser(QVector<MINIOICQ::UserInfo>& users)
         QSqlRecord newUser = userModel.record();
         newUser.setValue("uid", it->userId());
         newUser.setValue("name", it->username());
-        newUser.setValue("avatar", it->avatar());
+        newUser.setValue("avatar", toByteArray(it->avatar()));
         if (!userModel.insertRecord(-1, newUser))
         {
             qDebug() << "insert user failed: " << userModel.lastError();

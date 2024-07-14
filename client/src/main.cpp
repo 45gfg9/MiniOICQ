@@ -40,7 +40,6 @@ void initDB(const QString& dbName, QSqlDatabase& db)
     QFile localUserFile(localDBPath + dbName);
     if (!localUserFile.exists())
     {
-        qDebug() << "Create new db file " << localUserFile.fileName();
         localUserFile.open(QIODevice::WriteOnly);
         if (!localUserFile.isOpen())
         {
@@ -50,7 +49,7 @@ void initDB(const QString& dbName, QSqlDatabase& db)
         localUserFile.close();
     }
     // init database file
-    db = QSqlDatabase::addDatabase("QSQLITE", "users_connection");
+    db = QSqlDatabase::addDatabase("QSQLITE");
     qDebug() << db.driver()->hasFeature(QSqlDriver::BLOB);
     db.setDatabaseName(localDBPath + dbName);
     if (!db.open())

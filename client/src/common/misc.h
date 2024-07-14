@@ -5,6 +5,9 @@
 #include <QPalette>
 #include <QFont>
 #include <QMargins>
+#include <QImage>
+#include <QByteArray>
+#include <QBuffer>
 
 namespace MINIOICQ
 {
@@ -20,6 +23,8 @@ extern QString themeStyleSheetDim;
 void initTheme();
 void Error(QString message);
 void Warning(QString message);
+QByteArray toByteArray(QImage& image);
+QByteArray toByteArray(QImage image);
 
 } // namespace MINIOICQ
 

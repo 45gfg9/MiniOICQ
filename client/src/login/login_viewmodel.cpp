@@ -34,25 +34,8 @@ bool LoginViewModel::insertItem(const UserInfo& info)
     record.setValue("userId", info.userId().toInt());
     record.setValue("userName", info.username());
     record.setValue("password", info.password());
-    QByteArray arr;
-    QBuffer buffer(&arr);
-    buffer.open(QIODevice::WriteOnly);
-    info.avatar().save(&buffer, "JPG");
-    record.setValue("avatar", arr);
+    record.setValue("avatar", toByteArray(info.avatar()));
 
-    // qt base
-    // QByteArray ba = field.value().toByteArray();
-    // QString res;
-    // static const char hexchars[] = "0123456789abcdef";
-    // for (int i = 0; i < ba.size(); ++i)
-    // {
-    //     uchar s = (uchar)ba[i];
-    //     res += QLatin1Char(hexchars[s >> 4]);
-    //     res += QLatin1Char(hexchars[s & 0x0f]);
-    // }
-    // qDebug() << QLatin1Char('\'') + res + QLatin1Char('\'');
-    // qt base
-    // qDebug() << "LoginViewModel::insertItem" << record;
     QSqlTableModel* model = qobject_cast<QSqlTableModel*>(sourceModel());
     if (model->insertRecord(-1, record))
     {
@@ -104,11 +87,8 @@ void LoginViewModel::on_loginSuccess(const UserInfo& info)
             setData(index.siblingAtColumn(userNameColumn()), info.username());
         res |=
             setData(index.siblingAtColumn(passwordColumn()), info.password());
-    QByteArray arr;
-    QBuffer buffer(&arr);
-    buffer.open(QIODevice::WriteOnly);
-    info.avatar().save(&buffer, "JPG");
-        res |= setData(index.siblingAtColumn(avatarColumn()), arr);
+        res |= setData(index.siblingAtColumn(avatarColumn()),
+                       toByteArray(info.avatar()));
         if (!res)
         {
             Error("LoginViewModel::on_loginSuccess: failed to edit user data");

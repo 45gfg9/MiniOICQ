@@ -26,6 +26,28 @@ QString themeStyleSheetLight = QString("background-color: white;") +
                                QString("color: %1;").arg(themeColor.name());
 QString themeStyleSheetDim = QString("color: gray;");
 
+QByteArray toByteArray(QImage& image)
+{
+    QByteArray arr;
+    QBuffer buffer(&arr);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "JPG");
+    return arr;
+}
+
+QByteArray toByteArray(QImage image)
+{
+    QByteArray arr;
+    QBuffer buffer(&arr);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "JPG");
+    if(arr.size() == 0)
+    {
+        Warning("toByteArray zero");
+    }
+    return arr;
+}
+
 void initTheme() { themePalette.setColor(QPalette::Window, Qt::white); }
 
 } // namespace MINIOICQ
