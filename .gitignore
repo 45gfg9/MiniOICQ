@@ -2,6 +2,8 @@
 ref
 build
 *.exe
+*.exe.app
+# *.db
 
 # <<< Qt.gitignore
 # C++ objects and libs
