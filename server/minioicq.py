@@ -178,7 +178,17 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
 
     ph = argon2.PasswordHasher()
     pwd_hash = ph.hash(password)
+
     user_id, = conn.execute('INSERT INTO users (nick, pwd_hash, avatar) VALUES (?, ?, ?) RETURNING uid', (user_name, pwd_hash, avatar)).fetchone()
+    conn.commit()
+
+    # fill a test dummy data
+    with open('default-chat.jpg', 'rb') as f:
+        chat_avatar = f.read()
+    now = datetime.now().isoformat()
+    mid = random.randint(1, 2**31-1)
+    cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id, creation_time) VALUES (?, ?, ?, ?) RETURNING cid', ('Chat', chat_avatar, user_id, now)).fetchone()
+    conn.execute('INSERT INTO messages (cid, mid, type, content, sender_id, send_time) VALUES (?, ?, ?, ?, ?, ?)', (cid, mid, 'text/plain', base64.b64encode(b'Hello world!').decode(), user_id, now))
     conn.commit()
 
     # register but not login
@@ -219,6 +229,7 @@ async def message_send(ws: WebSocketServerProtocol, req: dict):
     now = datetime.now().isoformat()
     mid = random.randint(1, 2**31-1)
     conn.execute('INSERT INTO messages (cid, mid, type, content, sender_id, send_time) VALUES (?, ?, ?, ?, ?, ?)', (chat_id, mid, type, content, sender_userid, now))
+    conn.commit()
 
     # send to all users in chat
     msg = {
@@ -252,6 +263,7 @@ async def chat_create(ws: WebSocketServerProtocol, req: dict):
         chat_avatar = f.read()
     cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id, creation_time) VALUES (?, ?, ?, ?) RETURNING cid', (chat_name, chat_avatar, user_id, now)).fetchone()
     conn.executemany('INSERT INTO joins (cid, uid) VALUES (?, ?)', [(cid, uid) for uid in members])
+    conn.commit()
 
     # select all members' user_id, nick, avatar
     members.append(user_id)
