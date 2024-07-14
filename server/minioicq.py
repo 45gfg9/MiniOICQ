@@ -183,11 +183,9 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
     conn.commit()
 
     # fill a test dummy data
-    with open('default-chat.jpg', 'rb') as f:
-        chat_avatar = f.read()
     now = datetime.now().isoformat()
     mid = random.randint(1, 2**31-1)
-    cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id, creation_time) VALUES (?, ?, ?, ?) RETURNING cid', ('Chat', chat_avatar, user_id, now)).fetchone()
+    cid, = conn.execute('INSERT INTO chats (name, avatar, owner_id, creation_time) VALUES (?, ?, ?, ?) RETURNING cid', ('Chat', avatar, user_id, now)).fetchone()
     conn.execute('INSERT INTO messages (cid, mid, type, content, sender_id, send_time) VALUES (?, ?, ?, ?, ?, ?)', (cid, mid, 'text/plain', base64.b64encode(b'Hello world!').decode(), user_id, now))
     conn.commit()
 
