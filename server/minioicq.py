@@ -8,7 +8,7 @@ import ssl
 import sqlite3
 import argon2
 import random
-import urllib.request
+import aiohttp
 from datetime import datetime
 from bidict import bidict
 from uuid import UUID
@@ -173,8 +173,9 @@ async def auth_register(ws: WebSocketServerProtocol, req: dict):
     # with open('default-user.jpg', 'rb') as f:
     #     avatar = f.read()
     # load ramdom image from https://picsum.photos/200/200
-    with urllib.request.urlopen('https://picsum.photos/200/200') as response:
-        avatar = response.read()
+    async with aiohttp.ClientSession() as session:
+        async with session.get('https://picsum.photos/200') as response:
+            avatar = await response.read()
 
     ph = argon2.PasswordHasher()
     pwd_hash = ph.hash(password)
